@@ -1,5 +1,4 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter,ArgumentError
-import detectors
 import deepdish as dd
 import os
 from copy import deepcopy
@@ -14,6 +13,10 @@ from pycbc.filter import sigma
 from pycbc import psd
 import time
 from multiprocessing import Pool
+import math
+from pycbc import pnutils
+
+# Check if GWForge package is installed
 
 try:
     import GWForge
@@ -21,6 +24,8 @@ try:
 except ImportError:
     logging.warning("Unable to import GWForge. Will not be able to access the modules/detectors available in GWForge!")
     gwforge_available = False
+
+# Initial parser parses for arguments which are not required by the main script but are useful for the user
 
 initial_parser = ArgumentParser(add_help=False, allow_abbrev=False)
 initial_parser.add_argument("--available-detectors", action='store_true', 
@@ -35,6 +40,8 @@ available_detectors_full_names = deepcopy(get_available_lal_detectors())
 available_detectors = list(np.array(available_detectors_full_names)[:,0])
 
 available_psd_models = psd.analytical.get_psd_model_list()
+
+# Detector PSD validator class validates that the detectors and PSDs input by the user exist
 
 class DetectorPSDValidator:
     def __init__(self, available_detectors, available_psd_models):
@@ -87,6 +94,8 @@ class DetectorPSDValidator:
                 raise ArgumentError(None, f"{psd_model} path not found.")
         
         return detector, psd_model
+
+# Main argument parser
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, allow_abbrev=False)
 parser.add_argument("--param-file", required=req,
@@ -173,9 +182,9 @@ def project_signal_in_detector(hpf, hcf, ra, dec, polarization, ifo, trigger_tim
     
     Parameters: 
     -----------
-    hpf: PyCBC frequency series
+    hpf: PyCBC frequency series or time series
         h_plus
-    hcf: PyCBC frequency series
+    hcf: PyCBC frequency series or time series
         h_cross
     ra: float
         right ascension (in radian)
@@ -187,6 +196,11 @@ def project_signal_in_detector(hpf, hcf, ra, dec, polarization, ifo, trigger_tim
         short name of the detector
     trigger_time: float
         reference GPS time (in seconds)
+
+    Returns:
+    ---------
+    hf: PyCBC frequency or time series (based on the input)
+        hf = h_plus * f_plus + h_cross * f_cross
     """
 
     d = Detector(ifo)
@@ -198,30 +212,82 @@ def project_signal_in_detector(hpf, hcf, ra, dec, polarization, ifo, trigger_tim
 
 ###########
 
-def calc_opt_snr(hf, ifo, delta_f, f_low):
+def calc_PSD(ifo, length, delta_f, f_low):
+    """
+    Calculates PSD for a given detector by looking up the input argument given to argparse in the form of --detectors-and-psds det:PSD_model
+
+    Parameters:
+    -----------
+    ifo: str
+        short name of the detector
+    length: int
+        length of the array to be generated
+    delta_f: float
+        Frequency step used to generate the waveform
+    f_low: float
+        Starting frequency for PSD generation
+
+    Returns:
+    ------------
+    PyCBC FrequencySeries for PSD
+    """
     psd_model = dict(args.detectors_and_psds)[ifo]
     if psd_model in available_psd_models:
-        psd_data = eval('psd.analytical.'+psd_model)(len(hf), delta_f, f_low)
+        psd_data = eval('psd.analytical.'+psd_model)(length, delta_f, f_low)
     else:
         if args.is_asd:
             is_asd = True
         else:
             is_asd = False
-        psd_data = psd.from_txt(psd_model, len(hf), delta_f, f_low, is_asd_file=is_asd)
-    fq = hf.sample_frequencies.data
-    opt_snr = sigma(hf, psd_data, low_frequency_cutoff=f_low)
-    return (opt_snr)
+        psd_data = psd.from_txt(psd_model, length, delta_f, f_low, is_asd_file=is_asd)
+    return(psd_data)
 
 ###########
 
+class calc_opt_snr:
+    def __init__(self, psd_data_dict):
+        """
+        Initializes the class with a psd_data_dict which is a dictionary with keys as ifo names and values as the respective PSD data
+        """
+        self.psd_data_dict = psd_data_dict
+    def __call__(self, htilde, ifo, f_low):
+        """
+        Calculates optimal SNR
+    
+        Parameters:
+        ------------
+        htilde: PyCBC TimeSeries or Frequency Series
+            Input vector containing the waveform
+        ifo: str
+            short name of the detector
+        f_low: float
+            starting frequency calculate SNR
+    
+        Returns:
+        ---------
+        Optimal SNR (float)
+        """
+        opt_snr = sigma(htilde, self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
+        return (opt_snr)
+
+###########
+
+# Calculate the time it takes to run the program
+
 start_time = time.time()
 
+# Load data from the parameter file
+
 params_dict = dd.io.load(args.param_file)
+
+# Convert the parameter names in the data files to PyCBC names
 
 if args.input_param_names_format == 'PyCBC':
     params_dict_PyCBC = deepcopy(params_dict)
 else:
     params_dict_PyCBC = convert_pesummary_to_pycbc(params_dict)
+
+# Separate the waveform generation parameters and the location parameters
 
 wf_gen_params_dict = {}
 location_dict = {}
@@ -238,12 +304,50 @@ wf_gen_params_dict.update(
      'f_lower': [args.f_low]*sample_length, 
      'delta_f': [args.delta_f]*sample_length})
 
+# Get the detector network
+
 network = dict(args.detectors_and_psds).keys()
+
+# Find the lowest mass1 and mass2 values and highest spin1z and spin2z values to determine the (maximum) length of PSD to be generated
+
+min_mass1 = min(params_dict_PyCBC['mass1'])
+min_mass2 = min(params_dict_PyCBC['mass2'])
+max_spin1z = max(params_dict_PyCBC['spin1z'])
+max_spin2z = max(params_dict_PyCBC['spin2z'])
+
+max_f_final = math.ceil(pnutils.get_final_freq('IMRPhenomXAS', min_mass1, min_mass2, max_spin1z, max_spin2z))
+wf_gen_params_dict['f_final'] = [max_f_final]*sample_length
+
+hp_init, hc_init = get_fd_waveform(approximant = "IMRPhenomXP", 
+                                   mass1 = min_mass1, 
+                                   mass2 = min_mass2, 
+                                   spin1z = max_spin1z,
+                                   spin2z = max_spin2z,
+                                   f_lower = args.f_low, 
+                                   f_final = max_f_final, 
+                                   delta_f = args.delta_f)
+
+max_PSD_length = len(hp_init)
+
+# Generate PSDs for all the detectors
+
+PSD_dict = {}
+
+for ifo in network:
+    PSD_dict[ifo] = calc_PSD(ifo, max_PSD_length, args.delta_f, args.f_low)
+
+# Initialize the calc_opt_snr class with PSD_dict
+
+calc_opt_snr_call = calc_opt_snr(PSD_dict)
+
+# Calculate SNR for all samples
 
 params_df = pd.DataFrame(params_dict_PyCBC)
 wf_gen_params_df = pd.DataFrame(wf_gen_params_dict)
 
 results_dict = {}
+hf_dict = {}
+snr_dict = {}
 
 if args.num_procs == None:
     wf_data = list(map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
@@ -251,9 +355,7 @@ if args.num_procs == None:
     hcf_data = np.array(wf_data, dtype="object")[:,1]
     results_dict = pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list')
     results_dict.update(location_dict)
-    
-    hf_dict = {}
-    snr_dict = {}
+
     netw_SNR_sq = np.empty(sample_length)
     for IFO in network:
         print(f"Calculating SNR for {IFO}")
@@ -266,10 +368,9 @@ if args.num_procs == None:
                                 location_dict['polarization'],
                                 location_dict['ifo'],
                                 location_dict['trigger_time']))
-        snr_dict[IFO] = list(map(calc_opt_snr, 
+        snr_dict[IFO] = list(map(calc_opt_snr_call, 
                                  hf_dict[IFO], 
-                                 location_dict['ifo'], 
-                                 wf_gen_params_dict['delta_f'], 
+                                 location_dict['ifo'],  
                                  wf_gen_params_dict['f_lower']))
         results_dict['SNR_%s'%IFO] = snr_dict[IFO]
         netw_SNR_sq += np.array(snr_dict[IFO])**2
@@ -286,8 +387,6 @@ if args.num_procs:
             results_dict = pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list')
             results_dict.update(location_dict)
             
-            hf_dict = {}
-            snr_dict = {}
             netw_SNR_sq = np.empty(sample_length)
             for IFO in network:
                 print(f"Calculating SNR for {IFO}")
@@ -303,10 +402,9 @@ if args.num_procs:
                                                  )
                                              )
                                    )
-                snr_dict[IFO] = list(p.starmap(calc_opt_snr, 
+                snr_dict[IFO] = list(p.starmap(calc_opt_snr_call, 
                                                zip(hf_dict[IFO], 
-                                                   location_dict['ifo'], 
-                                                   wf_gen_params_dict['delta_f'], 
+                                                   location_dict['ifo'],  
                                                    wf_gen_params_dict['f_lower'])))
                 results_dict['SNR_%s'%IFO] = snr_dict[IFO]
                 netw_SNR_sq += np.array(snr_dict[IFO])**2
