@@ -417,7 +417,7 @@ if args.out_dir == None:
     out_dir = os.getcwd()
 else:
     out_dir = args.out_dir
-    if not os.isdir(out_dir):
+    if not os.path.isdir(out_dir):
         logging.warning(f'{out_dir} directory not found. Creating new directory.')
         os.makedirs(out_dir)
 print("Writing results to file")
