@@ -5,4 +5,5 @@ python gen_WF_calc_SNR.py \
 		L1:aLIGOZeroDetHighPower \
                 H1:aLIGOZeroDetHighPower \
                 V1:AdvVirgo \
+	--out-dir /Users/gravity/ACADEMIC/Projects/Cardiff_University/calc_SNR_next_gen/output_data \
         --set-name 1_day_prec_z_10
