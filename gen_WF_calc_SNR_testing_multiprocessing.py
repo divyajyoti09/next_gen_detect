@@ -297,6 +297,7 @@ for key in params_dict_PyCBC.keys():
         location_dict[key] = params_dict_PyCBC[key]
 
 sample_length = len(params_dict_PyCBC['mass1'])
+print(f'Sample length = {sample_length}')
 wf_gen_params_dict.update(
     {'approximant': [args.approximant]*sample_length, 
      'f_lower': [args.f_low]*sample_length, 
@@ -378,8 +379,10 @@ if args.num_procs == None:
     results_dict['SNR_network'] = list(np.sqrt(netw_SNR_sq))
 
 if args.num_procs:
+    print(f'Using multiprocessing with {args.num_procs} processes...')
     if __name__=='__main__':
         with Pool(args.num_procs) as p:
+            print("Generating waveforms")
             wf_data = list(p.imap(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
             hpf_data = np.array(wf_data, dtype="object")[:,0]
             hcf_data = np.array(wf_data, dtype="object")[:,1]
