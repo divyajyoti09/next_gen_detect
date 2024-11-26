@@ -383,7 +383,7 @@ if args.num_procs:
     if __name__=='__main__':
         with Pool(args.num_procs) as p:
             print("Generating waveforms")
-            wf_data = list(p.imap(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
+            wf_data = list(p.map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
             hpf_data = np.array(wf_data, dtype="object")[:,0]
             hcf_data = np.array(wf_data, dtype="object")[:,1]
             results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
@@ -391,7 +391,7 @@ if args.num_procs:
             for IFO in network:
                 location_dict['ifo'] = [IFO]*sample_length
                 print(f"Calculating SNR for {IFO}")
-                hf_dict[IFO] = list(p.imap(project_signal_in_detector, 
+                hf_dict[IFO] = list(p.starmap(project_signal_in_detector, 
                                               zip(hpf_data, 
                                                   hcf_data, 
                                                   location_dict['ra'], 
