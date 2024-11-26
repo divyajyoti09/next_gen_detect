@@ -274,28 +274,6 @@ class calc_opt_snr:
 
 ###########
 
-def map_or_starmap(func, iterable, use_multiprocessing=0, num_procs=8):
-    """
-    Depending on the iterable and multiprocessing preference, applies either map or starmap to the function
-
-    Returns:
-    ----------
-    list of return values from the function
-    """
-    if use_multiprocessing:
-        with Pool(num_procs) as p:
-            if isinstance(iterable[0], tuple):  # For starmap
-                    return list(p.starmap(func, iterable))
-            else:  # For map
-                return list(p.map(func, iterable))
-    else:
-        if isinstance(iterable[0], tuple):  # For starmap
-            return [func(*args) for args in iterable]
-        else:  # For map
-            return list(map(func, iterable))
-
-###############
-
 # Load data from the parameter file
 
 params_dict = dd.io.load(args.param_file)
@@ -372,6 +350,8 @@ snr_dict = {}
 netw_SNR_sq = np.empty(sample_length)
 
 if args.num_procs == None:
+    if sample_length >= 300:
+        raise Exception(f'No. of samples = {sample_length} is too large. Please use multiprocessing.')
     wf_data = list(map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
     hpf_data = np.array(wf_data, dtype="object")[:,0]
     hcf_data = np.array(wf_data, dtype="object")[:,1]
