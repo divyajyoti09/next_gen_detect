@@ -351,7 +351,7 @@ snr_dict = {}
 netw_SNR_sq = np.empty(sample_length)
 
 if args.num_procs == None:
-    if sample_length >= 300:
+    if sample_length >= 350:
         raise Exception(f'No. of samples = {sample_length} is too large. Please use multiprocessing.')
     wf_data = list(map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
     hpf_data = np.array(wf_data, dtype="object")[:,0]
@@ -383,12 +383,13 @@ if args.num_procs:
     if __name__=='__main__':
         with Pool(args.num_procs) as p:
             print("Generating waveforms")
-            wf_data = list(p.imap(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
+            wf_data = p.imap(waveform_gen_base, wf_gen_params_df.to_dict(orient='records'))
             hpf_data = np.array(wf_data, dtype="object")[:,0]
             hcf_data = np.array(wf_data, dtype="object")[:,1]
             results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
             
             for IFO in network:
+                location_dict['ifo'] = [IFO]*sample_length
                 print(f"Calculating SNR for {IFO}")
                 hf_dict[IFO] = list(p.starmap(project_signal_in_detector, 
                                               zip(hpf_data, 
@@ -396,14 +397,14 @@ if args.num_procs:
                                                   location_dict['ra'], 
                                                   location_dict['dec'], 
                                                   location_dict['polarization'], 
-                                                  [IFO]*sample_length, 
+                                                  location_dict['ifo', 
                                                   location_dict['trigger_time']
                                                  )
                                              )
                                    )
                 snr_dict[IFO] = list(p.starmap(calc_opt_snr_call, 
                                                zip(hf_dict[IFO], 
-                                                   [IFO]*sample_length,  
+                                                   location_dict['ifo'],  
                                                    wf_gen_params_dict['f_lower'])))
                 results_dict['SNR_%s'%IFO] = snr_dict[IFO]
                 netw_SNR_sq += np.array(snr_dict[IFO])**2
