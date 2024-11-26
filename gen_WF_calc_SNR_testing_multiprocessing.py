@@ -397,7 +397,7 @@ if args.num_procs:
                                                   location_dict['ra'], 
                                                   location_dict['dec'], 
                                                   location_dict['polarization'], 
-                                                  location_dict['ifo', 
+                                                  location_dict['ifo'], 
                                                   location_dict['trigger_time']
                                                  )
                                              )
