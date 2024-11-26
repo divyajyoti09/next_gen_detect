@@ -391,7 +391,7 @@ if args.num_procs:
             for IFO in network:
                 location_dict['ifo'] = [IFO]*sample_length
                 print(f"Calculating SNR for {IFO}")
-                hf_dict[IFO] = list(p.starmap(project_signal_in_detector, 
+                hf_dict[IFO] = list(p.imap(project_signal_in_detector, 
                                               zip(hpf_data, 
                                                   hcf_data, 
                                                   location_dict['ra'], 
