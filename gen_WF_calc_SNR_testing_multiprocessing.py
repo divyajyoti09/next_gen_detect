@@ -110,8 +110,12 @@ parser.add_argument("--input-param-names-format", choices={'PyCBC', 'PESummary',
                    help="The parameter names format in param-file Eg. mass_1 is Bilby/PESummary but mass1 is PyCBC")
 parser.add_argument("--set-name", default="Test_Set",
                    help="Name which will be used in naming output files.")
-parser.add_argument("--generate-waveform", action="store_true",
+parser.add_argument("--generate-only-waveforms", action="store_true",
                    help="If specified, generates waveforms for all sets of parameters in the param-file but doesn't calculate SNR.")
+parser.add_argument("--calc-SNR-from-waveforms", action="store_true",
+                   help="If specified, looks for h_plus, h_cross keys in the --param-file and uses those to calculate SNR for different detectors.")
+parser.add_argument("--samples-key", 
+                   help="Top level to look for parameters. Eg. --samples-key waveforms for data such as {'waveforms': {'param1':[...], 'param2':[...]}}. If None, it is assumed that the parameters are at the top level of the data file.")
 parser.add_argument("--num-procs", type=int,
                    help="Number of processes to distribute task over, uses multiprocessing. If None, the process the carried out without multiprocessing.")
 parser.add_argument("--delta-f", type=float, default=0.01,
@@ -276,7 +280,10 @@ class calc_opt_snr:
 
 # Load data from the parameter file
 
-params_dict = dd.io.load(args.param_file)
+if args.samples_key:
+    params_dict = dd.io.load(args.param_file)[args.samples_key]
+else:
+    params_dict = dd.io.load(args.param_file)
 
 # Convert the parameter names in the data files to PyCBC names
 
