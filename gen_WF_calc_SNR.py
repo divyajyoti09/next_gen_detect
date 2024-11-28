@@ -319,7 +319,7 @@ for key in params_dict_PyCBC.keys():
         location_dict[key] = params_dict_PyCBC[key]
 
 sample_length = len(params_dict_PyCBC['mass1'])
-print(f'Sample length = {sample_length}')
+print(f'Sample length = {}')
 wf_gen_params_dict.update(
     {'approximant': [args.approximant]*sample_length, 
      'f_lower': [args.f_low]*sample_length, 
