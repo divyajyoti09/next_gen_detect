@@ -161,6 +161,9 @@ cython_debug/
 # local directory specific
 .DS_Store
 
+# include local run file
+run_gen_WF_calc_SNR1.sh
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
