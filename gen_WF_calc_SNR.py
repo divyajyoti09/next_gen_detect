@@ -450,7 +450,8 @@ if args.num_procs:
         with Pool(args.num_procs) as p:
             for wf_gen_chunk, location_chunk, i in zip(wf_gen_params_df_chunked, location_df_chunked, range(1, n_chunks+1)):
                 worker_chunksize = len(location_chunk['ra'])//args.num_procs
-                print("\nProcessing chunk {}, length = {}".format(i, len(location_chunk['ra'])))
+                if n_chunks != 1:
+                    print("\nProcessing chunk {}, length = {}".format(i, len(location_chunk['ra'])))
                 print("Generating waveforms using imap")
                 print(f"Chunksize for imap = {worker_chunksize}")
                 wf_data = list(p.imap(waveform_gen_base, wf_gen_chunk.to_dict(orient='records'), chunksize=worker_chunksize))
