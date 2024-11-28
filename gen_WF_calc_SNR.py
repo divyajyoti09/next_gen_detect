@@ -485,10 +485,12 @@ if args.num_procs:
 
             results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
             results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+            print(results_chunk.index)
 
             results_df_chunked.append(results_chunk)
 
 results_df = pd.concat(results_df_chunked)
+print(results_df.index)
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
