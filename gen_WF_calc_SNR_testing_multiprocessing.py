@@ -457,6 +457,8 @@ if args.num_procs:
                 results_chunk = pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2])
                 results_chunk.index = location_chunk.index
                 results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
+
+                netw_SNR_sq = np.empty(len(results_chunk))
                 
                 for IFO in network:
                     location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
