@@ -15,6 +15,10 @@ import time
 from multiprocessing import Pool
 import math
 from pycbc import pnutils
+import sys
+
+# Force unbuffered output
+sys.stdout.reconfigure(line_buffering=True)
 
 # Check if GWForge package is installed
 
