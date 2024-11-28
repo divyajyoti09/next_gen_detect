@@ -498,7 +498,7 @@ if args.num_procs:
 
                 results_df_chunked.append(results_chunk)
 
-results_df = pd.concat([pd.concat(results_df_chunked), other_params_df])
+results_df = pd.concat([pd.concat(results_df_chunked), other_params_df], axis=1)
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
