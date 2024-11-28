@@ -483,11 +483,10 @@ if args.num_procs:
                     results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
                     netw_SNR_sq += np.array(snr_dict[IFO])**2
 
-            results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
-            results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
-            print(results_chunk.index)
+                results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
+                results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
 
-            results_df_chunked.append(results_chunk)
+                results_df_chunked.append(results_chunk)
 
 results_df = pd.concat(results_df_chunked)
 print(results_df.index)
