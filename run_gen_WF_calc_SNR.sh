@@ -1,4 +1,4 @@
-python gen_WF_calc_SNR_testing_multiprocessing.py \
+python gen_WF_calc_SNR.py \
 	--param-file /Users/gravity/ACADEMIC/Projects/Cardiff_University/calc_SNR_next_gen/param_data_files/test_pop_day.h5 \
         --approximant IMRPhenomPv2 \
         --detectors-and-psds \
