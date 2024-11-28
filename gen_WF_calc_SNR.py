@@ -399,7 +399,7 @@ snr_dict = {}
 # If sample size is large, divide into chunks
 if sample_length >= 250:
     n_chunks = math.ceil(sample_length/250)
-    print(f'Sample length > 100. Dividing into {n_chunks} chunks.')
+    print(f'Sample length > 250. Dividing into {n_chunks} chunks.')
 else:
     n_chunks = 1
 wf_gen_params_df_chunked = np.array_split(wf_gen_params_df, n_chunks)
