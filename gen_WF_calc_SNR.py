@@ -354,12 +354,15 @@ else:
 
 wf_gen_params_dict = {}
 location_dict = {}
+other_params_dict = {}
 
 for key in params_dict_PyCBC.keys():    
     if key in fd_waveform_params:
         wf_gen_params_dict[key] = params_dict_PyCBC[key]    
-    if key in ['ra', 'dec', 'polarization', 'trigger_time']:
+    elif key in ['ra', 'dec', 'polarization', 'trigger_time']:
         location_dict[key] = params_dict_PyCBC[key]
+    else:
+        other_params_dict[key] = params_dict_PyCBC[key]
 
 sample_length = len(params_dict_PyCBC['mass1'])
 print(f'Sample length = {sample_length}')
@@ -395,6 +398,7 @@ calc_opt_snr_call = calc_opt_snr(PSD_dict)
 
 wf_gen_params_df = pd.DataFrame(wf_gen_params_dict)
 location_df = pd.DataFrame(location_dict)
+other_params_df = pd.DataFrame(other_params_dict)
 
 results_dict = deepcopy(location_dict)
 hf_dict = {}
@@ -494,7 +498,7 @@ if args.num_procs:
 
                 results_df_chunked.append(results_chunk)
 
-results_df = pd.concat(results_df_chunked)
+results_df = pd.concat([pd.concat(results_df_chunked), other_params_df])
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
