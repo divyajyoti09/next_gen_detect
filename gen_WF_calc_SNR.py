@@ -110,8 +110,12 @@ parser.add_argument("--input-param-names-format", choices={'PyCBC', 'PESummary',
                    help="The parameter names format in param-file Eg. mass_1 is Bilby/PESummary but mass1 is PyCBC")
 parser.add_argument("--set-name", default="Test_Set",
                    help="Name which will be used in naming output files.")
-parser.add_argument("--generate-waveform", action="store_true",
+parser.add_argument("--generate-only-waveforms", action="store_true",
                    help="If specified, generates waveforms for all sets of parameters in the param-file but doesn't calculate SNR.")
+parser.add_argument("--calc-snr-from-waveforms", action="store_true",
+                   help="If specified, looks for h_plus, h_cross keys in the --param-file and uses those to calculate SNR for different detectors. All waveforms should be of equal length because PSDs are not generated separately for each sample.")
+parser.add_argument("--samples-key", 
+                   help="Top level to look for parameters. Eg. --samples-key waveforms for data such as {'waveforms': {'param1':[...], 'param2':[...]}}. If None, it is assumed that the parameters are at the top level of the data file.")
 parser.add_argument("--num-procs", type=int,
                    help="Number of processes to distribute task over, uses multiprocessing. If None, the process the carried out without multiprocessing.")
 parser.add_argument("--delta-f", type=float, default=0.01,
@@ -274,31 +278,66 @@ class calc_opt_snr:
 
 ###########
 
-def map_or_starmap(func, iterable, use_multiprocessing=0, num_procs=8):
+# Find the lowest mass1 and mass2 values and highest spin1z and spin2z values to determine the (maximum) length of PSD to be generated
+
+def find_max_PSD_length(method, params_dict_PyCBC):
     """
-    Depending on the iterable and multiprocessing preference, applies either map or starmap to the function
+    Finds the maximum length of the PSD that needs to be generated to account for all the samples and maximum final frequency for waveform generation (if needed)
+    
+    Parameters:
+    ------------
+    method: str, choices = {'mass_spin', waveform_length}
+        mass_spin: Uses the minimum mass1 and mass2 values and the maximum spin1z and spin2z values in the samples to generate a waveform with IMRPhenomXAS
+        waveform_length: Assumes all waveforms in the samples are equal length and returns that length
+    params_dict_PyCBC: dict
+        dictionary containing parameter values with parameter names in PyCBC format
 
     Returns:
-    ----------
-    list of return values from the function
+    -------------
+    (max_PSD_length, max_f_final, delta_f, f_low)
+    max_PSD_length: int
+        maximum length of PSD
+    max_f_final: float
+        maximum f_final to be used for waveform generation
+    delta_f: float
+        Frequency time-step
+    f_low: float
+        Start frequency of waveform and PSD generation
     """
-    if use_multiprocessing:
-        with Pool(num_procs) as p:
-            if isinstance(iterable[0], tuple):  # For starmap
-                    return list(p.starmap(func, iterable))
-            else:  # For map
-                return list(p.map(func, iterable))
-    else:
-        if isinstance(iterable[0], tuple):  # For starmap
-            return [func(*args) for args in iterable]
-        else:  # For map
-            return list(map(func, iterable))
+    if method == 'mass_spin':
+        min_mass1 = min(params_dict_PyCBC['mass1'])
+        min_mass2 = min(params_dict_PyCBC['mass2'])
+        max_spin1z = max(params_dict_PyCBC['spin1z'])
+        max_spin2z = max(params_dict_PyCBC['spin2z'])
 
-###############
+        max_f_final = math.ceil(pnutils.get_final_freq('IMRPhenomXAS', min_mass1, min_mass2, max_spin1z, max_spin2z))
+        
+        hp_init, hc_init = get_fd_waveform(approximant = "IMRPhenomXP", 
+                                           mass1 = min_mass1, 
+                                           mass2 = min_mass2, 
+                                           spin1z = max_spin1z,
+                                           spin2z = max_spin2z,
+                                           f_lower = args.f_low, 
+                                           f_final = max_f_final, 
+                                           delta_f = args.delta_f)        
+        max_PSD_length = len(hp_init)
+        return(max_PSD_length, max_f_final, args.delta_f, args.f_low)
+    
+    elif method == 'waveform_length':
+        max_PSD_len = len(params_dict_PyCBC['h_plus'][0])
+        max_f_final = params_dict_PyCBC['f_final'][0]
+        delta_f = params_dict_PyCBC['delta_f'][0]
+        f_low = params_dict_PyCBC['f_low'][0]
+        return(max_PSD_length, max_f_final, delta_f, f_low)
+
+#########################
 
 # Load data from the parameter file
 
-params_dict = dd.io.load(args.param_file)
+if args.samples_key:
+    params_dict = dd.io.load(args.param_file)[args.samples_key]
+else:
+    params_dict = dd.io.load(args.param_file)
 
 # Convert the parameter names in the data files to PyCBC names
 
@@ -319,7 +358,8 @@ for key in params_dict_PyCBC.keys():
         location_dict[key] = params_dict_PyCBC[key]
 
 sample_length = len(params_dict_PyCBC['mass1'])
-print(f'Sample length = {}')
+print(f'Sample length = {sample_length}')
+
 wf_gen_params_dict.update(
     {'approximant': [args.approximant]*sample_length, 
      'f_lower': [args.f_low]*sample_length, 
@@ -329,26 +369,12 @@ wf_gen_params_dict.update(
 
 network = dict(args.detectors_and_psds).keys()
 
-# Find the lowest mass1 and mass2 values and highest spin1z and spin2z values to determine the (maximum) length of PSD to be generated
-
-min_mass1 = min(params_dict_PyCBC['mass1'])
-min_mass2 = min(params_dict_PyCBC['mass2'])
-max_spin1z = max(params_dict_PyCBC['spin1z'])
-max_spin2z = max(params_dict_PyCBC['spin2z'])
-
-max_f_final = math.ceil(pnutils.get_final_freq('IMRPhenomXAS', min_mass1, min_mass2, max_spin1z, max_spin2z))
+if args.calc_snr_from_waveforms:
+    max_PSD_length, max_f_final, delta_f, f_low = find_max_PSD_length('waveform_length', params_dict_PyCBC)
+else:
+    max_PSD_length, max_f_final, delta_f, f_low = find_max_PSD_length('mass_spin', params_dict_PyCBC)
+    
 wf_gen_params_dict['f_final'] = [max_f_final]*sample_length
-
-hp_init, hc_init = get_fd_waveform(approximant = "IMRPhenomXP", 
-                                   mass1 = min_mass1, 
-                                   mass2 = min_mass2, 
-                                   spin1z = max_spin1z,
-                                   spin2z = max_spin2z,
-                                   f_lower = args.f_low, 
-                                   f_final = max_f_final, 
-                                   delta_f = args.delta_f)
-
-max_PSD_length = len(hp_init)
 
 # Generate PSDs for all the detectors
 
@@ -363,75 +389,105 @@ calc_opt_snr_call = calc_opt_snr(PSD_dict)
 
 # Calculate SNR for all samples
 
-params_df = pd.DataFrame(params_dict_PyCBC)
 wf_gen_params_df = pd.DataFrame(wf_gen_params_dict)
+location_df = pd.DataFrame(location_dict)
 
 results_dict = deepcopy(location_dict)
 hf_dict = {}
 snr_dict = {}
 
-netw_SNR_sq = np.empty(sample_length)
+# If sample size is large, divide into chunks
+if sample_length >= 100:
+    n_chunks = math.ceil(sample_length/100)
+    print(f'Sample length > 100. Dividing into {n_chunks} chunks.')
+else:
+    n_chunks = 1
+wf_gen_params_df_chunked = np.array_split(wf_gen_params_df, n_chunks)
+location_df_chunked = np.array_split(location_df, n_chunks)
+results_df_chunked = []
 
 if args.num_procs == None:
-    wf_data = list(map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
-    hpf_data = np.array(wf_data, dtype="object")[:,0]
-    hcf_data = np.array(wf_data, dtype="object")[:,1]
-    results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
+    for wf_gen_chunk, location_chunk, i in zip(wf_gen_params_df_chunked, location_df_chunked, range(1, n_chunks+1)):
+        print(f'\nProcessing chunk {i}')
+        print("Generating waveforms")
+        wf_data = list(map(waveform_gen_base, wf_gen_chunk.to_dict(orient='records')))
+        hpf_data = np.array(wf_data, dtype="object")[:,0]
+        hcf_data = np.array(wf_data, dtype="object")[:,1]
+        #results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
+        results_chunk = pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2])
+        results_chunk.index = location_chunk.index
+        results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
-    for IFO in network:
-        print(f"Calculating SNR for {IFO}")
-        hf_dict[IFO] = list(map(project_signal_in_detector, 
-                                hpf_data,
-                                hcf_data,
-                                location_dict['ra'],
-                                location_dict['dec'],
-                                location_dict['polarization'],
-                                [IFO]*sample_length,
-                                location_dict['trigger_time']))
-        snr_dict[IFO] = list(map(calc_opt_snr_call, 
-                                 hf_dict[IFO], 
-                                 [IFO]*sample_length,  
-                                 wf_gen_params_dict['f_lower']))
-        results_dict['SNR_%s'%IFO] = snr_dict[IFO]
-        netw_SNR_sq += np.array(snr_dict[IFO])**2
-
-    results_dict['SNR_network_sq'] = list(netw_SNR_sq)
-    results_dict['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+        netw_SNR_sq = np.empty(len(results_chunk))
+    
+        for IFO in network:
+            location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
+            print(f"Calculating SNR for {IFO}")
+            hf_dict[IFO] = list(map(project_signal_in_detector, 
+                                    hpf_data,
+                                    hcf_data,
+                                    location_chunk['ra'],
+                                    location_chunk['dec'],
+                                    location_chunk['polarization'],
+                                    location_chunk['ifo'],
+                                    location_chunk['trigger_time']))
+            snr_dict[IFO] = list(map(calc_opt_snr_call, 
+                                     hf_dict[IFO], 
+                                     location_chunk['ifo'],  
+                                     wf_gen_chunk['f_lower']))
+            results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
+            netw_SNR_sq += np.array(snr_dict[IFO])**2
+    
+        results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
+        results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+        
+        results_df_chunked.append(results_chunk)
 
 if args.num_procs:
     print(f'Using multiprocessing with {args.num_procs} processes...')
     if __name__=='__main__':
         with Pool(args.num_procs) as p:
-            print('Generating waveforms')
-            wf_data = list(p.map(waveform_gen_base, wf_gen_params_df.to_dict(orient='records')))
-            hpf_data = np.array(wf_data, dtype="object")[:,0]
-            hcf_data = np.array(wf_data, dtype="object")[:,1]
-            results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
-            
-            for IFO in network:
-                print(f"Calculating SNR for {IFO}")
-                hf_dict[IFO] = list(p.starmap(project_signal_in_detector, 
-                                              zip(hpf_data, 
-                                                  hcf_data, 
-                                                  location_dict['ra'], 
-                                                  location_dict['dec'], 
-                                                  location_dict['polarization'], 
-                                                  [IFO]*sample_length, 
-                                                  location_dict['trigger_time']
+            for wf_gen_chunk, location_chunk, i in zip(wf_gen_params_df_chunked, location_df_chunked, range(1, n_chunks+1)):
+                print(f'\nProcessing chunk {i}')
+                print("Generating waveforms")
+                wf_data = list(p.map(waveform_gen_base, wf_gen_chunk.to_dict(orient='records')))
+                hpf_data = np.array(wf_data, dtype="object")[:,0]
+                hcf_data = np.array(wf_data, dtype="object")[:,1]
+                #results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
+                results_chunk = pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2])
+                results_chunk.index = location_chunk.index
+                results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
+
+                netw_SNR_sq = np.empty(len(results_chunk))
+                
+                for IFO in network:
+                    location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
+                    print(f"Calculating SNR for {IFO}")
+                    hf_dict[IFO] = list(p.starmap(project_signal_in_detector, 
+                                                  zip(hpf_data, 
+                                                      hcf_data, 
+                                                      location_chunk['ra'], 
+                                                      location_chunk['dec'], 
+                                                      location_chunk['polarization'], 
+                                                      location_chunk['ifo'], 
+                                                      location_chunk['trigger_time']
+                                                     )
                                                  )
-                                             )
-                                   )
-                snr_dict[IFO] = list(p.starmap(calc_opt_snr_call, 
-                                               zip(hf_dict[IFO], 
-                                                   [IFO]*sample_length,  
-                                                   wf_gen_params_dict['f_lower'])))
-                results_dict['SNR_%s'%IFO] = snr_dict[IFO]
-                netw_SNR_sq += np.array(snr_dict[IFO])**2
+                                       )
+                    snr_dict[IFO] = list(p.starmap(calc_opt_snr_call, 
+                                                   zip(hf_dict[IFO], 
+                                                       location_chunk['ifo'],  
+                                                       wf_gen_chunk['f_lower'])))
+                    results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
+                    netw_SNR_sq += np.array(snr_dict[IFO])**2
 
-            results_dict['SNR_network_sq'] = list(netw_SNR_sq)
-            results_dict['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+            results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
+            results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
 
-results_df = pd.DataFrame(results_dict)
+            results_df_chunked.append(results_chunk)
+
+results_df = pd.concat(results_df_chunked)
+#results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
 else:
