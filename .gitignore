@@ -161,8 +161,10 @@ cython_debug/
 # local directory specific
 .DS_Store
 
-# include local run file
+# local run files
 run_gen_WF_calc_SNR1.sh
+run_gen_WF_calc_SNR2.sh
+*.out
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
