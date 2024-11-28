@@ -419,7 +419,7 @@ if args.num_procs == None:
         results_chunk.index = location_chunk.index
         results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
-        netw_SNR_sq = np.empty(len(results_chunk))
+        netw_SNR_sq = np.zeros(len(results_chunk))
     
         for IFO in network:
             location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
@@ -461,7 +461,7 @@ if args.num_procs:
                 results_chunk.index = location_chunk.index
                 results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
-                netw_SNR_sq = np.empty(len(results_chunk))
+                netw_SNR_sq = np.zeros(len(results_chunk))
                 
                 for IFO in network:
                     location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
@@ -490,7 +490,6 @@ if args.num_procs:
                 results_df_chunked.append(results_chunk)
 
 results_df = pd.concat(results_df_chunked)
-print(results_df.index)
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
