@@ -450,7 +450,7 @@ if args.num_procs:
             for wf_gen_chunk, location_chunk, i in zip(wf_gen_params_df_chunked, location_df_chunked, range(1, n_chunks+1)):
                 print("\nProcessing chunk {}, length = {}".format(i, len(location_chunk['ra'])))
                 print("Generating waveforms")
-                wf_data = list(p.map(waveform_gen_base, wf_gen_chunk.to_dict(orient='records')))
+                wf_data = list(p.imap(waveform_gen_base, wf_gen_chunk.to_dict(orient='records')))
                 hpf_data = np.array(wf_data, dtype="object")[:,0]
                 hcf_data = np.array(wf_data, dtype="object")[:,1]
                 #results_dict.update(pd.DataFrame.from_records(np.array(wf_data, dtype="object")[:,2]).to_dict(orient='list'))
