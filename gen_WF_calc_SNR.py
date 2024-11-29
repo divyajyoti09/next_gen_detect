@@ -390,7 +390,7 @@ PSD_dict = {}
 
 for ifo in network:
     PSD_dict[ifo] = calc_PSD(ifo, max_PSD_length, args.delta_f, args.f_low)
-    PSD_model_names_dict[IFO] = [dict(args.detectors_and_psds)[IFO]]*sample_length
+    PSD_model_names_dict[ifo] = [dict(args.detectors_and_psds)[ifo]]*sample_length
 
 # Initialize the calc_opt_snr class with PSD_dict
 
