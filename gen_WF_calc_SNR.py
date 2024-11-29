@@ -374,6 +374,7 @@ wf_gen_params_dict.update(
 
 # Get the detector network
 
+PSD_model_names_dict = {}
 network = dict(args.detectors_and_psds).keys()
 
 if args.calc_snr_from_waveforms:
@@ -389,6 +390,7 @@ PSD_dict = {}
 
 for ifo in network:
     PSD_dict[ifo] = calc_PSD(ifo, max_PSD_length, args.delta_f, args.f_low)
+    PSD_model_names_dict[IFO] = [dict(args.detectors_and_psds)[IFO]]*sample_length
 
 # Initialize the calc_opt_snr class with PSD_dict
 
@@ -399,6 +401,7 @@ calc_opt_snr_call = calc_opt_snr(PSD_dict)
 wf_gen_params_df = pd.DataFrame(wf_gen_params_dict)
 location_df = pd.DataFrame(location_dict)
 other_params_df = pd.DataFrame(other_params_dict)
+PSD_model_names_df = pd.DataFrame(PSD_model_names_dict)
 
 results_dict = deepcopy(location_dict)
 hf_dict = {}
@@ -498,7 +501,7 @@ if args.num_procs:
 
                 results_df_chunked.append(results_chunk)
 
-results_df = pd.concat([pd.concat(results_df_chunked), other_params_df], axis=1)
+results_df = pd.concat([pd.concat(results_df_chunked), other_params_df, PSD_model_names_df], axis=1)
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
