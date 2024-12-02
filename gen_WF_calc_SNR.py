@@ -3,7 +3,7 @@ import deepdish as dd
 import os
 from copy import deepcopy
 from conversions import convert_pesummary_to_pycbc
-from pycbc.detector import get_available_detectors, get_available_lal_detectors
+from detectors import get_available_detectors_list, get_available_detectors_full_names
 import logging
 import numpy as np
 from pycbc.waveform import get_fd_waveform, fd_waveform_params
@@ -42,8 +42,8 @@ initial_args, remaining_args = initial_parser.parse_known_args()
 
 req = not any(vars(initial_args).values())
 
-available_detectors_full_names = deepcopy(get_available_lal_detectors())
-available_detectors = list(np.array(available_detectors_full_names)[:,0])
+available_detectors_full_names = get_available_detectors_full_names()
+available_detectors = get_available_detectors_list()
 
 available_psd_models = psd.analytical.get_psd_model_list()
 
@@ -146,7 +146,7 @@ parser.add_argument("--is-asd", action="store_true",
 args = parser.parse_args()
 
 if args.available_detectors:
-    for det in available_detectors_full_names:
+    for det in available_detectors_full_names.items():
         print(det)
     exit()
 
@@ -375,7 +375,8 @@ wf_gen_params_dict.update(
 # Get the detector network
 
 PSD_model_names_dict = {}
-network = dict(args.detectors_and_psds).keys()
+detectors_and_psds_dict = dict(args.detectors_and_psds)
+network = detectors_and_psds_dict.keys()
 
 if args.calc_snr_from_waveforms:
     max_PSD_length, max_f_final, delta_f, f_low = find_max_PSD_length('waveform_length', params_dict_PyCBC)
@@ -390,7 +391,11 @@ PSD_dict = {}
 
 for ifo in network:
     PSD_dict[ifo] = calc_PSD(ifo, max_PSD_length, args.delta_f, args.f_low)
-    PSD_model_names_dict[f'PSD_{ifo}'] = [dict(args.detectors_and_psds)[ifo]]*sample_length
+    PSD_model_name = detectors_and_psds_dict[ifo]
+    if ".dat" in PSD_model_name or ".txt" in PSD_model_name:
+        PSD_model_names_dict[f'PSD_{ifo}'] = [PSD_model_name.split('/')[-1]]*sample_length
+    else:
+        PSD_model_names_dict[f'PSD_{ifo}'] = [PSD_model_name]*sample_length
 
 # Initialize the calc_opt_snr class with PSD_dict
 
