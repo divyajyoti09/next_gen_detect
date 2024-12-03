@@ -16,6 +16,7 @@ from multiprocessing import Pool
 import math
 from pycbc import pnutils
 import sys
+from detector_psds import get_available_psds, generate_psd
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -45,7 +46,7 @@ req = not any(vars(initial_args).values())
 available_detectors_full_names = get_available_detectors_full_names()
 available_detectors = get_available_detectors_list()
 
-available_psd_models = psd.analytical.get_psd_model_list()
+available_psd_models = get_available_psds()
 
 # Detector PSD validator class validates that the detectors and PSDs input by the user exist
 
@@ -243,7 +244,7 @@ def calc_PSD(ifo, length, delta_f, f_low):
     """
     psd_model = dict(args.detectors_and_psds)[ifo]
     if psd_model in available_psd_models:
-        psd_data = eval('psd.analytical.'+psd_model)(length, delta_f, f_low)
+        psd_data = generate_psd(psd_model, length, delta_f, f_low)
     else:
         if args.is_asd:
             is_asd = True
