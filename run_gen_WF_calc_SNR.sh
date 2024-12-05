@@ -1,8 +1,8 @@
 python gen_WF_calc_SNR.py \
-	--param-file /Users/gravity/ACADEMIC/Projects/Cardiff_University/calc_SNR_next_gen/param_data_files/test_pop_day.h5 \
+	--param-file /Users/gravity/ACADEMIC/Projects/Cardiff_University/calc_SNR_next_gen/param_data_files/test_pop_1_day.h5 \
         --approximant IMRPhenomPv2 \
         --detectors-and-psds \
-		CE20:CosmicExplorerP1600143 \
+		L1:aLIGOZeroDetHighPower \
                 H1:aLIGOZeroDetHighPower \
                 V1:AdvVirgo \
 	--out-dir /Users/gravity/ACADEMIC/Projects/Cardiff_University/calc_SNR_next_gen/output_data \

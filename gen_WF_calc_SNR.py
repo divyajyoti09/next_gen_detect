@@ -17,6 +17,7 @@ import math
 from pycbc import pnutils
 import sys
 from detector_psds import get_available_psds, generate_psd
+import h5py
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -339,10 +340,13 @@ def find_max_PSD_length(method, params_dict_PyCBC):
 
 # Load data from the parameter file
 
+load_params_file = dd.io.load(args.param_file)
+params_dict = deepcopy(load_params_file)
+
+config_dict = params_dict.pop("config", None)
+    
 if args.samples_key:
-    params_dict = dd.io.load(args.param_file)[args.samples_key]
-else:
-    params_dict = dd.io.load(args.param_file)
+    params_dict = params_dict[args.samples_key]
 
 # Convert the parameter names in the data files to PyCBC names
 
@@ -512,8 +516,19 @@ else:
     if not os.path.isdir(out_dir):
         logging.warning(f'{out_dir} directory not found. Creating new directory.')
         os.makedirs(out_dir)
+
 print("Writing results to file")
-results_df.to_hdf(os.path.join(out_dir, args.set_name+'_SNR_data.h5'), key='Optimal_SNR')
+output_file = os.path.join(out_dir, args.set_name+'_SNR_data.h5')
+results_df.to_hdf(output_file, key='Optimal_SNR', mode='w')
+
+if config_dict != None:
+    print("Writing configuration settings from param-file to output file")
+    with h5py.File(output_file, "a") as h5file:  # Open in append mode to add more data
+        config_group = h5file.create_group("config")  # Create a group for configuration
+        for section, settings in config_dict.items():
+            section_group = config_group.create_group(section)
+            for key, value in settings.items():
+                section_group.attrs[key] = str(value)
 print("Done!")
 
 end_time = time.time()
