@@ -456,9 +456,7 @@ if args.num_procs == None:
             results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
             netw_SNR_sq += np.array(snr_dict[IFO])**2
     
-        results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
         results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
-        
         results_df_chunked.append(results_chunk)
 
 if args.num_procs:
@@ -502,12 +500,10 @@ if args.num_procs:
                     results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
                     netw_SNR_sq += np.array(snr_dict[IFO])**2
 
-                results_chunk['SNR_network_sq'] = list(netw_SNR_sq)
                 results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
-
                 results_df_chunked.append(results_chunk)
 
-results_df = pd.concat([pd.concat(results_df_chunked), other_params_df, PSD_model_names_df], axis=1)
+results_df = pd.concat([PSD_model_names_df, other_params_df, pd.concat(results_df_chunked)], axis=1)
 #results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()

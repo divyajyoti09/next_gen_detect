@@ -1,6 +1,6 @@
-from pycbc.psd import analytical
+from pycbc import psd
 
-pycbc_psds = analytical.get_psd_model_list()
+pycbc_psds = psd.analytical.get_psd_model_list()
 
 psds_from_files = {'ASharp':'./noise_curves/Asharp-asd.txt', 
                    'CE20': './noise_curves/CE20-asd.txt'}
@@ -28,10 +28,11 @@ def generate_psd(psd_name, length, delta_f, f_low):
     PyCBC FrequencySeries for PSD
     """
     if psd_name in pycbc_psds:
-        psd_data = eval('analytical.'+psd_name)(length, delta_f, f_low)
+        psd_data = eval('psd.analytical.'+psd_name)(length, delta_f, f_low)
     
     elif psd_name in psds_from_files.keys():
-        psd.from_txt(psds_from_files[psd_name], length, delta_f, f_low, is_asd_file=True)
+        psd_data = psd.from_txt(psds_from_files[psd_name], length, delta_f, f_low, is_asd_file=True)
 
     else:
         raise ValueError(f"PSD model '{psd_name}' not found.")
+    return(psd_data)
