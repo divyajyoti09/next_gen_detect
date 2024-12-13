@@ -279,7 +279,11 @@ class calc_opt_snr:
         ---------
         Optimal SNR (float)
         """
-        opt_snr = sigma(htilde, self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
+        if len(htilde) > len(self.psd_data_dict[ifo]):
+            logging.warning("len(hf) > len(PSD_array). The SNR calculation will only be done where PSD data is present.")
+            opt_snr = sigma(htilde[:len(self.psd)], self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
+        else:
+            opt_snr = sigma(htilde, self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
         return (opt_snr)
 
 ###########
@@ -370,7 +374,7 @@ for key in params_dict_PyCBC.keys():
         other_params_dict[key] = params_dict_PyCBC[key]
 
 sample_length = len(params_dict_PyCBC['mass1'])
-print(f'Sample length = {sample_length}')
+print(f'\nSample length = {sample_length}')
 
 wf_gen_params_dict.update(
     {'approximant': [args.approximant]*sample_length, 
@@ -420,7 +424,7 @@ snr_dict = {}
 # If sample size is large, divide into chunks
 if sample_length >= 250:
     n_chunks = math.ceil(sample_length/250)
-    print(f'Sample length > 250. Dividing into {n_chunks} chunks.')
+    print(f'Sample length > 250. Dividing into {n_chunks} chunks.\n')
 else:
     n_chunks = 1
 wf_gen_params_df_chunked = np.array_split(wf_gen_params_df, n_chunks)
