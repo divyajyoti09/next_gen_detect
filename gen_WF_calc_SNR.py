@@ -279,7 +279,7 @@ class calc_opt_snr:
         ---------
         Optimal SNR (float)
         """
-        if len(htilde) > len(self.psd_data_dict[ifo]):
+        if len(htilde) != len(self.psd_data_dict[ifo]):
             logging.warning("len(hf) > len(PSD_array). The SNR calculation will only be done where PSD data is present.")
             opt_snr = sigma(htilde[:len(self.psd)], self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
         else:
