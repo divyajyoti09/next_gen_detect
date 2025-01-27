@@ -2,8 +2,9 @@ from pycbc import psd
 
 pycbc_psds = psd.analytical.get_psd_model_list()
 
-psds_from_files = {'ASharp':'./noise_curves/Asharp-asd.txt', 
-                   'CE20': './noise_curves/CE20-asd.txt'}
+psds_from_files = {'ASharp':'./noise_curves/Asharp-asd.txt', #taken from https://dcc.ligo.org/LIGO-T2300041
+                   'CE20': './noise_curves/CE20-asd.txt', #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
+                   'CE40': './noise_curves/CE40-asd.txt'} #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_strain.txt
 
 def get_available_psds():
     return(pycbc_psds + list(psds_from_files.keys()))
