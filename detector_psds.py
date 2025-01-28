@@ -19,7 +19,7 @@ def generate_psd(psd_name, length, delta_f, f_low):
     Parameters:
     -------------
     psd_name: str
-        PSD model name from `pycbc.psd.analytical.get_psd_model_list` or the dictionary above
+        PSD model name from the list available at `detector_psds.get_available_psds()`
     length: int
         length of the array to be generated
     delta_f: float
