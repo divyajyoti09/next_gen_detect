@@ -2,9 +2,12 @@ from pycbc import psd
 
 pycbc_psds = psd.analytical.get_psd_model_list()
 
-psds_from_files = {'ASharp':'./noise_curves/Asharp-asd.txt', #taken from https://dcc.ligo.org/LIGO-T2300041
-                   'CE20': './noise_curves/CE20-asd.txt', #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
-                   'CE40': './noise_curves/CE40-asd.txt'} #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_strain.txt
+psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', #taken from https://dcc.ligo.org/LIGO-T2300041
+                             'is_asd':True},
+                   'CE20':{'file':'./noise_curves/CE20-asd.txt', #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
+                           'is_asd':True}, 
+                   'CE40':{'file':'./noise_curves/CE40-asd.txt', 
+                           'is_asd':True}} #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_strain.txt
 
 def get_available_psds():
     return(pycbc_psds + list(psds_from_files.keys()))
@@ -32,7 +35,9 @@ def generate_psd(psd_name, length, delta_f, f_low):
         psd_data = eval('psd.analytical.'+psd_name)(length, delta_f, f_low)
     
     elif psd_name in psds_from_files.keys():
-        psd_data = psd.from_txt(psds_from_files[psd_name], length, delta_f, f_low, is_asd_file=True)
+        psd_data = psd.from_txt(psds_from_files[psd_name]['file'], 
+                                length, delta_f, f_low, 
+                                is_asd_file=psds_from_files[psd_name]['is_asd'])
 
     else:
         raise ValueError(f"PSD model '{psd_name}' not found.")
