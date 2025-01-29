@@ -65,7 +65,10 @@ def convert_pesummary_to_pycbc(samples, include_extra_samples=True):
         if key not in PESummary_to_PyCBC_map.keys():
             extra_samples[key] = samples[key]
         else:
-            pycbc_samples[PESummary_to_PyCBC_map[key]] = samples[key]
+            if key == 'mass_ratio':
+                pycbc_samples[PESummary_to_PyCBC_map[key]] = 1/samples[key]
+            else:
+                pycbc_samples[PESummary_to_PyCBC_map[key]] = samples[key]
 
     if include_extra_samples:
         pycbc_samples.update(extra_samples)
