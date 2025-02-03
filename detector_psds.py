@@ -1,13 +1,18 @@
 from pycbc import psd
+import numpy as np
 
 pycbc_psds = psd.analytical.get_psd_model_list()
 
-psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', #taken from https://dcc.ligo.org/LIGO-T2300041
+psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', # https://dcc.ligo.org/LIGO-T2300041
                              'is_asd':True},
-                   'CE20':{'file':'./noise_curves/CE20-asd.txt', #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
+                   'CE20':{'file':'./noise_curves/CE20-asd.txt', # https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
                            'is_asd':True}, 
                    'CE40':{'file':'./noise_curves/CE40-asd.txt', 
-                           'is_asd':True}} #taken from https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_strain.txt
+                           'is_asd':True}, # https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_strain.txt
+                   'ET10_CoBA':{'file':'./noise_curves/18213_ET10kmcolumns.txt', 'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213
+                   'ET15_CoBA':{'file':'./noise_curves/18213_ET15kmcolumns.txt', 'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213
+                   'ET20_CoBA':{'file':'./noise_curves/18213_ET20kmcolumns.txt', 'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213
+                  }
 
 def get_available_psds():
     return(pycbc_psds + list(psds_from_files.keys()))
@@ -35,9 +40,14 @@ def generate_psd(psd_name, length, delta_f, f_low):
         psd_data = eval('psd.analytical.'+psd_name)(length, delta_f, f_low)
     
     elif psd_name in psds_from_files.keys():
-        psd_data = psd.from_txt(psds_from_files[psd_name]['file'], 
-                                length, delta_f, f_low, 
-                                is_asd_file=psds_from_files[psd_name]['is_asd'])
+        if 'ET' in psd_name:
+            et_Freq, *_, et_psd = np.loadtxt(psds_from_files[psd_name], unpack=True)
+            psd_data = psd.from_numpy_arrays(et_freq, et_psd,
+                                             length, delta_f, f_low)
+        else:
+            psd_data = psd.from_txt(psds_from_files[psd_name]['file'],
+                                    length, delta_f, f_low,
+                                    is_asd_file=psds_from_files[psd_name]['is_asd'])
 
     else:
         raise ValueError(f"PSD model '{psd_name}' not found.")
