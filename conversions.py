@@ -23,14 +23,11 @@ def convert_pesummary_to_pycbc(samples, include_extra_samples=True):
     PESummary_to_PyCBC_map['mass_ratio'] = 'q'
     PESummary_to_PyCBC_map['symmetric_mass_ratio'] = 'eta'
     PESummary_to_PyCBC_map['total_mass'] = 'mtotal'
+    PESummary_to_PyCBC_map['final_mass'] = 'final_mass'
 
     for key in samples.keys():
         if '_source' in key:
             PESummary_to_PyCBC_map[key] = 'src' + PESummary_to_PyCBC_map[key.split('_source')[0]]
-    
-    PESummary_to_PyCBC_map['mass_1_source'] = 'srcmass1'
-    PESummary_to_PyCBC_map['mass_2_source'] = 'srcmass2'
-    PESummary_to_PyCBC_map['chirp_mass_source'] = 'srcmchirp'
     
     PESummary_to_PyCBC_map['luminosity_distance'] = 'distance'
     PESummary_to_PyCBC_map['redshift'] = 'redshift'
