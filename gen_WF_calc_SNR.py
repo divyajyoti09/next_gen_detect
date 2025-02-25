@@ -18,6 +18,7 @@ from pycbc import pnutils
 import sys
 from detector_psds import get_available_psds, generate_psd
 import h5py
+import random
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -108,6 +109,8 @@ class DetectorPSDValidator:
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, allow_abbrev=False)
 parser.add_argument("--param-file", required=req,
                    help="Path to the h5 file containing source parameters")
+parser.add_argument("--num-samples", type=int,
+                   help="Number of samples to be drawn randomly from the param-file")
 parser.add_argument("--approximant", required=req,
                    help="LAL approximant for waveform generation")
 parser.add_argument("--out-dir",
@@ -355,9 +358,22 @@ if args.samples_key:
 # Convert the parameter names in the data files to PyCBC names
 
 if args.input_param_names_format == 'PyCBC':
-    params_dict_PyCBC = deepcopy(params_dict)
+    params_dict_PyCBC0 = deepcopy(params_dict)
 else:
-    params_dict_PyCBC = convert_pesummary_to_pycbc(params_dict)
+    params_dict_PyCBC0 = convert_pesummary_to_pycbc(params_dict)
+
+if args.num_samples:
+    num_samples = args.num_samples
+    if num_samples > len(params_dict_PyCBC0['mass1']):
+        logging.warning(f'num_samples > number of available samples (={len(params_dict_PyCBC0["mass1"])}) in the param-file. All samples from the param-file will be used.')
+        params_dict_PyCBC = deepcopy(params_dict_PyCBC0)
+    else:
+        params_dict_PyCBC = {}
+        random_idxs = random.sample(list(np.arange(len(params_dict_PyCBC0['mass1']))), num_samples)
+        for key in params_dict_PyCBC0.keys():
+            params_dict_PyCBC[key] = params_dict_PyCBC0[key][random_idxs]
+else:
+    params_dict_PyCBC = deepcopy(params_dict_PyCBC0)
 
 # Separate the waveform generation parameters and the location parameters
 

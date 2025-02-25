@@ -16,7 +16,7 @@ def convert_pesummary_to_pycbc(samples, include_extra_samples=True):
 
     PESummary_to_PyCBC_map = {}
     
-    for key in ['mass_1', 'mass_2', 'spin_1x', 'spin_1y', 'spin_1z', 'spin_2x', 'spin_2y', 'spin_2z']:
+    for key in ['mass_1', 'mass_2', 'spin_1x', 'spin_1y', 'spin_1z', 'spin_2x', 'spin_2y', 'spin_2z', 'lambda_1', 'lambda_2']:
         PESummary_to_PyCBC_map[key] = ''.join(key.split('_'))
         
     PESummary_to_PyCBC_map['chirp_mass'] = 'mchirp'
