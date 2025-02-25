@@ -41,7 +41,7 @@ def generate_psd(psd_name, length, delta_f, f_low):
     
     elif psd_name in psds_from_files.keys():
         if 'ET' in psd_name:
-            et_freq, *_, et_psd = np.loadtxt(psds_from_files[psd_name], unpack=True)
+            et_freq, *_, et_psd = np.loadtxt(psds_from_files[psd_name]['file'], unpack=True)
             psd_data = psd.from_numpy_arrays(et_freq, et_psd,
                                              length, delta_f, f_low)
         else:
