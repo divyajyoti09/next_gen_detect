@@ -19,6 +19,7 @@ import sys
 from detector_psds import get_available_psds, generate_psd
 import h5py
 import random
+import configparser
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -50,65 +51,13 @@ available_detectors = get_available_detectors_list()
 
 available_psd_models = get_available_psds()
 
-# Detector PSD validator class validates that the detectors and PSDs input by the user exist
-
-class DetectorPSDValidator:
-    def __init__(self, available_detectors, available_psd_models):
-        """
-        Validator for detectors and PSD models.
-
-        Parameters:
-        -----------
-        available_detectors : list
-            A list of valid detector names.
-        available_psd_models : list
-            A list of valid PSD model names.
-        """
-        self.available_detectors = available_detectors
-        self.available_psd_models = available_psd_models
-
-    def __call__(self, value):
-        """
-        Validates a detector and its PSD model provided as 'detector:PSD_model'.
-
-        Parameters:
-        -----------
-        value : str
-            Input string in the format 'detector:PSD_model'.
-
-        Returns:
-        --------
-        tuple
-            A tuple of (detector, PSD_model) if validation succeeds.
-
-        Raises:
-        -------
-        ArgumentError
-            If either the detector or PSD model is invalid.
-        """
-        try:
-            detector, psd_model = value.strip().split(":")
-        except ValueError:
-            raise ArgumentError(None, f"Invalid format '{value}'. Expected 'detector:PSD_model'.")
-        
-        if detector not in self.available_detectors:
-            raise ArgumentError(None, f"Detector '{detector}' not available. "
-                                      f"Available detectors: {', '.join(self.available_detectors)}")
-        
-        if psd_model not in self.available_psd_models:
-            logging.warning(f"PSD model {psd_model} not available. \nChecking if this is a file path..")
-            if os.path.isfile(psd_model):
-                print("File found")
-            else:
-                raise ArgumentError(None, f"{psd_model} path not found.")
-        
-        return detector, psd_model
-
 # Main argument parser
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, allow_abbrev=False)
 parser.add_argument("--param-file", required=req,
                    help="Path to the h5 file containing source parameters")
+parser.add_argument("--netw-config", required=req,
+                   help="Path to config file containing information about the networks")
 parser.add_argument("--num-samples", type=int,
                    help="Number of samples to be drawn randomly from the param-file")
 parser.add_argument("--approximant", required=req,
@@ -117,8 +66,6 @@ parser.add_argument("--out-dir",
                    help="Path to the directory where output files will be saved. If None, files will be saved in the current directory.")
 parser.add_argument("--input-param-names-format", choices={'PyCBC', 'PESummary', 'Bilby'}, default='PESummary',
                    help="The parameter names format in param-file Eg. mass_1 is Bilby/PESummary but mass1 is PyCBC")
-parser.add_argument("--set-name", default="Test_Set",
-                   help="Name which will be used in naming output files.")
 parser.add_argument("--generate-only-waveforms", action="store_true",
                    help="If specified, generates waveforms for all sets of parameters in the param-file but doesn't calculate SNR.")
 parser.add_argument("--calc-snr-from-waveforms", action="store_true",
@@ -131,24 +78,10 @@ parser.add_argument("--delta-f", type=float, default=0.01,
                    help="The frequency step used to generate the waveform in frequency domain (in Hz)")
 parser.add_argument("--delta-t", type=float, default=1/1024,
                    help="The time step used to generate the waveform (in s)")
-parser.add_argument("--f-low", type=float, default=5,
-                   help="Starting frequency of integration (in Hz)")
 parser.add_argument("--available-detectors", action='store_true',
                    help="Returns a list of all available detectors along with full names (if specified in source).")
 parser.add_argument("--available-psd-models", action='store_true', 
                    help="Returns a list of the available PSD models")
-parser.add_argument("--detectors-and-psds", 
-                   default=[('L1', 'aLIGOZeroDetHighPower'), 
-                            ('H1', 'aLIGOZeroDetHighPower'), 
-                            ('V1', 'AdvVirgo')],
-                   nargs='+',
-                   type=DetectorPSDValidator(available_detectors, available_psd_models), 
-                   metavar='det:PSD_model',
-                   help="Specify detectors and their PSD models in the format 'detector:PSD_model' or 'detector:/path/to/psd/file'. \nUse --available-detectors or --available-psd-models to see the list of all available detectors and PSD models respectively. \nUse --is-asd option in addition to this option to indicate that the files are ASD not PSD")
-parser.add_argument("--is-asd", action="store_true",
-                   help="Use this option to indicate that the PSD files provided in --detectors-and-psds are ASD files. When not specified, the files are treated as PSD files.")
-parser.add_argument("--write-out-file-with", choices={'pandas', 'h5py'}, default='h5py',
-                    help="The structure of the h5 file will depend on whether it is written with pandas.Dataframe.to_hdf() or using h5py.")
 
 args = parser.parse_args()
 
@@ -163,6 +96,31 @@ if args.available_psd_models:
     exit()
 
 ###########
+
+def CPItems_to_dict(config):
+    lev1 = {s:dict(config.items(s)) for s in config.sections()}
+    for section in lev1.keys():
+        lev2 = lev1[section]
+        for entry in lev2.keys():
+            value_str = lev2[entry].replace(' ', '')
+            if '{' in value_str:
+                value_lst = value_str.replace('{', '').replace('}', '').split(',')
+                value_dict = {}
+                for value_pair in value_lst:
+                    value_key, value = value_pair.split(':')
+                    value_dict[value_key] = value
+                lev2[entry] = value_dict
+        lev1[section] = lev2
+    return(lev1)
+
+def get_networks_from_config(config_file):
+    netw_config = configparser.ConfigParser()
+    netw_config.read(config_file)
+    netw_config_dict = CPItems_to_dict(netw_config)
+    return(netw_config_dict)
+
+###########################
+        
 
 def waveform_gen_base(pycbc_fd_wf_params):
     """
@@ -295,7 +253,7 @@ class calc_opt_snr:
 
 # Find the lowest mass1 and mass2 values and highest spin1z and spin2z values to determine the (maximum) length of PSD to be generated
 
-def find_max_PSD_length(method, params_dict_PyCBC):
+def find_max_PSD_length(method, params_dict_PyCBC, f_low):
     """
     Finds the maximum length of the PSD that needs to be generated to account for all the samples and maximum final frequency for waveform generation (if needed)
     
@@ -332,11 +290,11 @@ def find_max_PSD_length(method, params_dict_PyCBC):
                                            mass2 = min_mass2, 
                                            spin1z = max_spin1z,
                                            spin2z = max_spin2z,
-                                           f_lower = args.f_low, 
+                                           f_lower = f_low, 
                                            f_final = max_f_final, 
                                            delta_f = args.delta_f)        
         max_PSD_length = len(hp_init)
-        return(max_PSD_length, max_f_final, args.delta_f, args.f_low)
+        return(max_PSD_length, max_f_final, args.delta_f)
     
     elif method == 'waveform_length':
         max_PSD_len = len(params_dict_PyCBC['h_plus'][0])
@@ -346,35 +304,6 @@ def find_max_PSD_length(method, params_dict_PyCBC):
         return(max_PSD_length, max_f_final, delta_f, f_low)
 
 #########################
-
-def hdf_append(f, key, value, group=None):
-    # Create the group if it doesn't exist
-    if group:
-        if group not in f:
-            f.create_group(group)
-        target = f[group]
-    else:
-        target = f
-
-    # Convert pandas Series to numpy array
-    if hasattr(value, 'values'):
-        value = value.values
-
-    value = np.atleast_1d(value)
-
-    # Handle string data explicitly
-    if value.dtype.kind in {'U', 'O'}:
-        dt = h5py.string_dtype(encoding='utf-8')
-        value = value.astype(str).astype(dt)
-
-    if key in target:
-        tmp = np.concatenate([target[key][:], value])
-        del target[key]
-        target.create_dataset(key, data=tmp)
-    else:
-        target.create_dataset(key, data=value)
-
-###############################################
 
 # Load data from the parameter file
 
@@ -431,7 +360,14 @@ wf_gen_params_dict.update(
 # Get the detector network
 
 PSD_model_names_dict = {}
-detectors_and_psds_dict = dict(args.detectors_and_psds)
+all_networks_dict = get_networks_from_config(args.netw_config)
+all_psds_dict = {}
+all_detectors_dict = {}
+for network in all_networks_dict:
+    for detector in all_networks_dict[network]['detector-psds'].keys():
+        all_psds_dict[all_networks_dict[network]['detector-psds']]
+## TODO: incomplete code!!
+        all_psds_dict[all_networks_dict[network]['detector-psds']]
 network = detectors_and_psds_dict.keys()
 
 if args.calc_snr_from_waveforms:
@@ -559,7 +495,7 @@ if args.num_procs:
                 results_df_chunked.append(results_chunk)
 
 results_df = pd.concat([PSD_model_names_df, other_params_df, pd.concat(results_df_chunked)], axis=1)
-
+#results_df = pd.DataFrame(results_dict)
 if args.out_dir == None:
     out_dir = os.getcwd()
 else:
@@ -568,15 +504,9 @@ else:
         logging.warning(f'{out_dir} directory not found. Creating new directory.')
         os.makedirs(out_dir)
 
+print("Writing results to file")
 output_file = os.path.join(out_dir, args.set_name+'_SNR_data.h5')
-print(f"Writing results to file: {output_file}")
-
-if args.write_out_file_with == 'pandas':
-    results_df.to_hdf(output_file, key='Optimal_SNR', mode='w')
-elif args.write_out_file_with == 'h5py':
-    with h5py.File(output_file,'w') as f:
-        for key in results_df.keys():
-            hdf_append(f, key, results_df[key], group='Optimal_SNR')
+results_df.to_hdf(output_file, key='Optimal_SNR', mode='w')
 
 if config_dict != None:
     print("Writing configuration settings from param-file to output file")

@@ -25,18 +25,6 @@ def convert_pesummary_to_pycbc(samples, include_extra_samples=True):
     PESummary_to_PyCBC_map['total_mass'] = 'mtotal'
     PESummary_to_PyCBC_map['final_mass'] = 'final_mass'
 
-    for key in samples.keys():
-        if '_source' in key:
-            PESummary_to_PyCBC_map[key] = 'src' + PESummary_to_PyCBC_map[key.split('_source')[0]]
-    
-    PESummary_to_PyCBC_map['luminosity_distance'] = 'distance'
-    PESummary_to_PyCBC_map['redshift'] = 'redshift'
-    
-    if 'iota' in samples.keys():
-        PESummary_to_PyCBC_map['iota'] = 'inclination'
-    else:
-        PESummary_to_PyCBC_map['theta_jn'] = 'inclination'
-    
     PESummary_to_PyCBC_map['phase'] = 'coa_phase'
     PESummary_to_PyCBC_map['geocent_time'] = 'trigger_time'
     PESummary_to_PyCBC_map['ra'] = 'ra'
@@ -54,6 +42,18 @@ def convert_pesummary_to_pycbc(samples, include_extra_samples=True):
     PESummary_to_PyCBC_map['phi_2'] = 'spin2_azimuthal'
     PESummary_to_PyCBC_map['chi_eff'] = 'chi_eff'
     PESummary_to_PyCBC_map['chi_p'] = 'chi_p'
+
+    PESummary_to_PyCBC_map['luminosity_distance'] = 'distance'
+    PESummary_to_PyCBC_map['redshift'] = 'redshift'
+
+    for key in samples.keys():
+        if '_source' in key:
+            PESummary_to_PyCBC_map[key] = 'src' + PESummary_to_PyCBC_map[key.split('_source')[0]]
+    
+    if 'iota' in samples.keys():
+        PESummary_to_PyCBC_map['iota'] = 'inclination'
+    else:
+        PESummary_to_PyCBC_map['theta_jn'] = 'inclination'
 
     pycbc_samples = {}
     extra_samples = {}
