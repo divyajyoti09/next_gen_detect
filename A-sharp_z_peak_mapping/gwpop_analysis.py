@@ -21,7 +21,8 @@ xp = gwpop.utils.xp
 # In[2]:
 
 
-project_dir = '/home/divyajyoti/ACADEMIC/Projects/Cardiff_University/Next_gen_detectability/A-sharp-study/'
+#project_dir = '/home/divyajyoti/ACADEMIC/Projects/Cardiff_University/Next_gen_detectability/A-sharp-study/'
+project_dir = '/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/'
 
 
 # ## Load posteriors
@@ -97,7 +98,7 @@ result = bb.run_sampler(
     priors=priors,
     sampler="dynesty",
     nlive=100,
-    label="cosmo",
+    label="Asharp-study-gwpop",
     sample="acceptance-walk",
     naccept=5,
     save="hdf5",
