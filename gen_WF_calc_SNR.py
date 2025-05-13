@@ -1,6 +1,8 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter,ArgumentError
 import deepdish as dd
 import os
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
 from copy import deepcopy
 from conversions import convert_pesummary_to_pycbc
 from detectors import get_available_detectors_list, get_available_detectors_full_names
@@ -15,10 +17,10 @@ import time
 from multiprocessing import Pool
 import math
 from pycbc import pnutils
-import sys
 from detector_psds import get_available_psds, generate_psd
 import h5py
 import random
+from pycbc.types import FrequencySeries
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -149,6 +151,8 @@ parser.add_argument("--is-asd", action="store_true",
                    help="Use this option to indicate that the PSD files provided in --detectors-and-psds are ASD files. When not specified, the files are treated as PSD files.")
 parser.add_argument("--write-out-file-with", choices={'pandas', 'h5py'}, default='h5py',
                     help="The structure of the h5 file will depend on whether it is written with pandas.Dataframe.to_hdf() or using h5py.")
+parser.add_argument("--max-worker-chunksize", type=int, default=40,
+                    help="Maximum worker chunksize to be alloted when using Pool. Use this with --num-procs option if needed")
 
 args = parser.parse_args()
 
@@ -420,6 +424,10 @@ for key in params_dict_PyCBC.keys():
     else:
         other_params_dict[key] = params_dict_PyCBC[key]
 
+if 'trigger_time' not in location_dict.keys():
+    logging.warning("trigger_time not found in input parameters. Setting trigger_time = numpy.arange(0, len(ra) * 1000, 1000)")
+    location_dict["trigger_time"] = np.arange(0, len(location_dict["ra"]) * 1000, 1000)
+
 sample_length = len(params_dict_PyCBC['mass1'])
 print(f'\nSample length = {sample_length}')
 
@@ -519,7 +527,7 @@ if args.num_procs:
     if __name__=='__main__':
         with Pool(args.num_procs) as p:
             for wf_gen_chunk, location_chunk, i in zip(wf_gen_params_df_chunked, location_df_chunked, range(1, n_chunks+1)):
-                worker_chunksize = min(len(location_chunk['ra'])//args.num_procs, 40)
+                worker_chunksize = min(len(location_chunk['ra'])//args.num_procs, args.max_worker_chunksize)
                 if n_chunks != 1:
                     print("\nProcessing chunk {}, length = {}".format(i, len(location_chunk['ra'])))
                 print("Generating waveforms using imap")

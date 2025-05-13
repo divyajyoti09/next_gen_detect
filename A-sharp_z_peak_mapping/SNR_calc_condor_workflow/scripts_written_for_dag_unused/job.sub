@@ -1,0 +1,33 @@
+universe       = vanilla
+executable     = /bin/bash
+arguments      = -c "tar -xzf noise_curves.tar.gz && /cvmfs/software.igwn.org/conda/envs/igwn-py310/bin/python3 gen_WF_calc_SNR.py \
+                 --param-file 1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part\$(Process).h5 \
+                 --approximant IMRPhenomPv2 \
+                 --detectors-and-psds L1:ASharp H1:ASharp I1:ASharp \
+                 --f-low 10 \
+                 --out-dir SNR_output_files \
+                 --set-name LHI_SNR_1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part\$(Process) \
+                 --num-procs 8"
+
+log            = outdir/logs/job_$(Process).log
+output         = outdir/logs/job_$(Process).out
+error          = outdir/logs/job_$(Process).err
+transfer_input_files      = /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/gen_WF_calc_SNR.py, \
+                                /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/conversions.py, \
+                                /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/detectors.py, \
+                                /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/detector_psds.py, \
+				/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/input_files/1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part$(Process).h5, \
+				/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/noise_curves.tar.gz
+
+request_cpus   = 8
+request_memory = 2GB
+request_disk   = 2GB
+
+notify_user               = divyajyoti.nln@ligo.org
+accounting_group          = ligo.dev.o5.cbc.pe.bilby
+accounting_group_user     = divyajyoti.nln
+
++ProjectName      = "A-sharp-study"
+requirements = HAS_CVMFS_software_igwn_org == True
+
+queue 2

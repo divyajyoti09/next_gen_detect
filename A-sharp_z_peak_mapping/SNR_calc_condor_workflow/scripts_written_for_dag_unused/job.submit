@@ -1,0 +1,32 @@
+universe       = vanilla
+executable     = /usr/bin/python3
+arguments      = /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/gen_WF_calc_SNR.py \
+                 --param-file $(input) \
+                 --approximant IMRPhenomPv2 \
+                 --detectors-and-psds L1:ASharp H1:ASharp I1:ASharp \
+                 --f-low 10 \
+                 --out-dir /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/SNR_output_files \
+                 --set-name $(output) \
+                 --num-procs 8
+
+log            = outdir/logs/job_$(index).log
+output         = outdir/logs/job_$(index).out
+error          = outdir/logs/job_$(index).err
+
+request_cpus   = 8
+request_memory = 2GB
+request_disk   = 2GB
+
+should_transfer_files     = YES
+when_to_transfer_output   = ON_EXIT
+transfer_input_files      = /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/gen_WF_calc_SNR.py, \
+                             $(input)
+
+notify_user               = divyajyoti.nln@ligo.org
+accounting_group          = ligo.dev.o5.cbc.pe.bilby
+accounting_group_user     = divyajyoti.nln
+
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/ligo/igwn-base:latest"
++ProjectName      = "A-sharp-study"
+
+queue input, output, index from job_args.txt

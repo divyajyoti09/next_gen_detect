@@ -169,6 +169,9 @@ run_gen_WF_calc_SNR2.sh
 ._detectors.py
 noise_curves/._Asharp-asd.txt
 noise_curves/._CE20-asd.txt
+*.tar.gz
+run_job_9_52_78.sh
+*outdir/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can

@@ -1,2 +1,3 @@
-mkdir -p logs
-condor_submit_dag job.dag
+#mkdir -p outdir/logs
+#condor_submit_dag -usedagdir -outfile_dir outdir job.dag
+condor_submit job.sub

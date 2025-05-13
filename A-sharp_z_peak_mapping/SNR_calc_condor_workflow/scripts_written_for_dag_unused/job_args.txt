@@ -1,0 +1,2 @@
+/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/input_files/1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part0.h5, LHI_SNR_1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part0, 0
+/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/input_files/1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part1.h5, LHI_SNR_1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_corrected_td_part1, 1
