@@ -21,6 +21,8 @@ from detector_psds import get_available_psds, generate_psd
 import h5py
 import random
 from pycbc.types import FrequencySeries
+from pycbc.filter.matchedfilter import matched_filter
+from pycbc.noise import frequency_noise_from_psd
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -231,7 +233,7 @@ def project_signal_in_detector(hpf, hcf, ra, dec, polarization, ifo, trigger_tim
     
     return(hf)
 
-###########
+#####################################################
 
 def calc_PSD(ifo, length, delta_f, f_low):
     """
@@ -265,13 +267,41 @@ def calc_PSD(ifo, length, delta_f, f_low):
 
 ###########
 
-class calc_opt_snr:
+class calc_snr:
     def __init__(self, psd_data_dict):
         """
         Initializes the class with a psd_data_dict which is a dictionary with keys as ifo names and values as the respective PSD data
         """
         self.psd_data_dict = psd_data_dict
-    def __call__(self, htilde, ifo, f_low):
+        self.noise_dict = {}
+        for key in psd_data_dict.keys():
+            self.noise_dict[key] = frequency_noise_from_psd(psd=psd_data_dict[key])
+
+    def add_noise_to_signal(self, htilde, ifo):
+        """
+        Adds noise to the signal provided
+
+        Parameters:
+        --------------
+        htilde: Frequency Series
+            Input vector containing the waveform
+        ifo: str
+            short name of the detector
+
+        Returns:
+        ----------------
+        noise + htilde (PyCBC FrequencySeries)
+        """
+        #noise = frequency_noise_from_psd(psd=self.psd_data_dict[ifo])
+        noise = self.noise_dict[ifo]
+        if len(htilde) != len(self.psd_data_dict[ifo]):
+            logging.warning("len(hf) > len(PSD_array). The calculation will only be done where PSD data is present.")
+            data = noise + htilde[:len(noise)]
+        else:
+            data = noise + htilde
+        return(data)
+
+    def calc_opt_snr(self, htilde, ifo, f_low):
         """
         Calculates optimal SNR
     
@@ -283,7 +313,7 @@ class calc_opt_snr:
             short name of the detector
         f_low: float
             starting frequency calculate SNR
-    
+
         Returns:
         ---------
         Optimal SNR (float)
@@ -294,6 +324,32 @@ class calc_opt_snr:
         else:
             opt_snr = sigma(htilde, self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
         return (opt_snr)
+
+    def calc_mf_snr(self, template, ifo, f_low, opt_snr_sq):
+        """
+        Calculates matched filter SNR
+
+        Parameters:
+        ------------
+        template: PyCBC TimeSeries or Frequency Series
+            Input vector containing the waveform
+        ifo: str
+            short name of the detector
+        f_low: float
+            starting frequency calculate SNR
+
+        Returns:
+        ---------
+        Maximum of absolute of the complex matched filter SNR (float)
+        """
+        data = self.add_noise_to_signal(template, ifo)
+
+        if len(data) != len(self.psd_data_dict[ifo]):
+            logging.warning("len(hf) > len(PSD_array). The SNR calculation will only be done where PSD data is present.")
+            mf_snr = matched_filter(template[:len(self.psd_data_dict[ifo])], data[:len(self.psd_data_dict[ifo])], psd=self.psd_data_dict[ifo], low_frequency_cutoff=f_low, sigmasq=opt_snr_sq)
+        else:
+            mf_snr = matched_filter(template, data, psd=self.psd_data_dict[ifo], low_frequency_cutoff=f_low, sigmasq=opt_snr_sq)
+        return (max(abs(mf_snr)))
 
 ###########
 
@@ -463,7 +519,7 @@ for ifo in network:
 
 # Initialize the calc_opt_snr class with PSD_dict
 
-calc_opt_snr_call = calc_opt_snr(PSD_dict)
+calc_snr_call = calc_snr(PSD_dict)
 
 # Calculate SNR for all samples
 
@@ -474,7 +530,8 @@ PSD_model_names_df = pd.DataFrame(PSD_model_names_dict)
 
 results_dict = deepcopy(location_dict)
 hf_dict = {}
-snr_dict = {}
+snr_dict_opt = {}
+snr_dict_mf = {}
 
 # If sample size is large, divide into chunks
 if sample_length >= 250:
@@ -499,7 +556,8 @@ if args.num_procs == None:
         results_chunk.index = location_chunk.index
         results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
-        netw_SNR_sq = np.zeros(len(results_chunk))
+        netw_SNR_sq_opt = np.zeros(len(results_chunk))
+        netw_SNR_sq_mf = np.zeros(len(results_chunk))
     
         for IFO in network:
             location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
@@ -512,14 +570,22 @@ if args.num_procs == None:
                                     location_chunk['polarization'],
                                     location_chunk['ifo'],
                                     location_chunk['trigger_time']))
-            snr_dict[IFO] = list(map(calc_opt_snr_call, 
-                                     hf_dict[IFO], 
-                                     location_chunk['ifo'],  
+            snr_dict_opt[IFO] = list(map(calc_snr_call.calc_opt_snr,
+                                     hf_dict[IFO],
+                                     location_chunk['ifo'],
                                      wf_gen_chunk['f_lower']))
-            results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
-            netw_SNR_sq += np.array(snr_dict[IFO])**2
+            snr_dict_mf[IFO] = list(map(calc_snr_call.calc_mf_snr,
+                                     hf_dict[IFO],
+                                     location_chunk['ifo'],
+                                     wf_gen_chunk['f_lower'],
+                                     np.array(snr_dict_opt[IFO])**2))
+            results_chunk['SNR_%s'%IFO] = snr_dict_opt[IFO]
+            results_chunk['SNR_mf_%s'%IFO] = snr_dict_mf[IFO]
+            netw_SNR_sq_opt += np.array(snr_dict_opt[IFO])**2
+            netw_SNR_sq_mf += np.array(snr_dict_mf[IFO])**2
     
-        results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+        results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq_opt))
+        results_chunk['SNR_mf_network'] = list(np.sqrt(netw_SNR_sq_mf))
         results_df_chunked.append(results_chunk)
 
 if args.num_procs:
@@ -540,7 +606,8 @@ if args.num_procs:
                 results_chunk.index = location_chunk.index
                 results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
-                netw_SNR_sq = np.zeros(len(results_chunk))
+                netw_SNR_sq_opt = np.zeros(len(results_chunk))
+                netw_SNR_sq_mf = np.zeros(len(results_chunk))
                 
                 for IFO in network:
                     location_chunk['ifo'] = [IFO]*len(location_chunk['ra'])
@@ -556,14 +623,22 @@ if args.num_procs:
                                                      )
                                                  )
                                        )
-                    snr_dict[IFO] = list(p.starmap(calc_opt_snr_call, 
-                                                   zip(hf_dict[IFO], 
-                                                       location_chunk['ifo'],  
+                    snr_dict_opt[IFO] = list(p.starmap(calc_snr_call.calc_opt_snr,
+                                                   zip(hf_dict[IFO],
+                                                       location_chunk['ifo'],
                                                        wf_gen_chunk['f_lower'])))
-                    results_chunk['SNR_%s'%IFO] = snr_dict[IFO]
-                    netw_SNR_sq += np.array(snr_dict[IFO])**2
+                    snr_dict_mf[IFO] = list(p.starmap(calc_snr_call.calc_mf_snr,
+                                                   zip(hf_dict[IFO],
+                                                       location_chunk['ifo'],
+                                                       wf_gen_chunk['f_lower'],
+                                                       np.array(snr_dict_opt[IFO])**2)))
+                    results_chunk['SNR_%s'%IFO] = snr_dict_opt[IFO]
+                    results_chunk['SNR_mf_%s'%IFO] = snr_dict_mf[IFO]
+                    netw_SNR_sq_opt += np.array(snr_dict_opt[IFO])**2
+                    netw_SNR_sq_mf += np.array(snr_dict_mf[IFO])**2
 
-                results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq))
+                results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq_opt))
+                results_chunk['SNR_mf_network'] = list(np.sqrt(netw_SNR_sq_mf))
                 results_df_chunked.append(results_chunk)
 
 results_df = pd.concat([PSD_model_names_df, other_params_df, pd.concat(results_df_chunked)], axis=1)
@@ -584,7 +659,7 @@ if args.write_out_file_with == 'pandas':
 elif args.write_out_file_with == 'h5py':
     with h5py.File(output_file,'w') as f:
         for key in results_df.keys():
-            hdf_append(f, key, results_df[key], group='Optimal_SNR')
+            hdf_append(f, key, results_df[key], group='results')
 
 if config_dict != None:
     print("Writing configuration settings from param-file to output file")
