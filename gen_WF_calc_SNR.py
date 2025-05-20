@@ -389,7 +389,7 @@ def find_max_PSD_length(method, params_dict_PyCBC):
 
         max_f_final = math.ceil(pnutils.get_final_freq('IMRPhenomXAS', min_mass1, min_mass2, max_spin1z, max_spin2z))
         if max_f_final > args.f_high:
-            max_f_final = f_high
+            max_f_final = args.f_high
         
         hp_init, hc_init = get_fd_waveform(approximant = "IMRPhenomXP", 
                                            mass1 = min_mass1, 

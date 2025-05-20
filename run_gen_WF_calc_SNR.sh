@@ -6,5 +6,4 @@ python gen_WF_calc_SNR.py \
                 H1:aLIGOZeroDetHighPower \
                 V1:AdvVirgo \
 	--out-dir /home/divyajyoti/ACADEMIC/Projects/Cardiff_University/Next_gen_detectability/calc_SNR_next_gen/output_data/Test_data \
-        --set-name 1_day_prec_z_10_local \
-	--write-out-file-with h5py
+        --set-name 1_day_prec_z_10_local 
