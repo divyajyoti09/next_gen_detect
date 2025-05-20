@@ -344,7 +344,7 @@ class calc_snr:
         """
         data = self.add_noise_to_signal(template, ifo)
 
-        if len(data) != len(self.psd_data_dict[ifo]):
+        if len(data) != len(self.psd_data_dict[ifo]) or len(template) != len(self.psd_data_dict[ifo]):
             logging.warning("len(hf) > len(PSD_array). The SNR calculation will only be done where PSD data is present.")
             mf_snr = matched_filter(template[:len(self.psd_data_dict[ifo])], data[:len(self.psd_data_dict[ifo])], psd=self.psd_data_dict[ifo], low_frequency_cutoff=f_low, sigmasq=opt_snr_sq)
         else:
