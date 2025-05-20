@@ -136,7 +136,9 @@ parser.add_argument("--delta-f", type=float, default=0.01,
 parser.add_argument("--delta-t", type=float, default=1/1024,
                    help="The time step used to generate the waveform (in s)")
 parser.add_argument("--f-low", type=float, default=5,
-                   help="Starting frequency of integration (in Hz)")
+                   help="Starting frequency for waveform generation and integration (in Hz)")
+parser.add_argument("--f-high", type=float, default=1024,
+                    help="Upper frequency cut-off for waveform generation and integration (in Hz)")
 parser.add_argument("--available-detectors", action='store_true',
                    help="Returns a list of all available detectors along with full names (if specified in source).")
 parser.add_argument("--available-psd-models", action='store_true', 
@@ -386,6 +388,8 @@ def find_max_PSD_length(method, params_dict_PyCBC):
         max_spin2z = max(params_dict_PyCBC['spin2z'])
 
         max_f_final = math.ceil(pnutils.get_final_freq('IMRPhenomXAS', min_mass1, min_mass2, max_spin1z, max_spin2z))
+        if max_f_final > args.f_high:
+            max_f_final = f_high
         
         hp_init, hc_init = get_fd_waveform(approximant = "IMRPhenomXP", 
                                            mass1 = min_mass1, 
