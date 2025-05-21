@@ -12,4 +12,4 @@ tar -xzf noise_curves.tar.gz
   --out-dir SNR_output_files \
   --set-name CE4020ET123_CoBA10_SNR_2_pop_PLP_spin_prec_z_MD_zmax_10_lmrd_22_corrected_td_part$1 \
   --num-procs 16 \
-  --max-worker-chunksize 10
+  --max-worker-chunksize 20

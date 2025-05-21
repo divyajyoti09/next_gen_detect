@@ -13,25 +13,32 @@ from bilby.core.prior import PriorDict, Uniform
 from gwpopulation.experimental.jax import JittedLikelihood, NonCachingModel
 import os
 import time
+import argparse
 
 gwpop.set_backend("jax")
 
 xp = gwpop.utils.xp
 
+parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, allow_abbrev=False)
+parser.add_argument("--posterior-file", required=True, 
+                    help="Path to the pkl file containing the posterior samples for all events")
+parser.add_argument("--out-dir",
+                    help="Path to the directory where output files will be saved. If None, files will be saved in the current directory.")
+parser.add_argument("--detected-injections-file", required=True,
+                    help="path to the pkl file containing the injections which are detected")
+parser.add_argument("--z-max", type=float, default=8,
+                    help="z_max value to call the redshift model with")
+parser.add_argument("--label", default="Asharp-study",
+                    help="label for the gwpopulation analysis result files")
 
-# In[2]:
-
-
-#project_dir = '/home/divyajyoti/ACADEMIC/Projects/Cardiff_University/Next_gen_detectability/A-sharp-study/'
-project_dir = '/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/'
-
+args = parser.parse_args()
 
 # ## Load posteriors
 
 # In[3]:
 
 
-posteriors = pd.read_pickle(os.path.join(project_dir, 'gwpopulation', 'BBH', 'redshift_posteriors_499_events.pkl'))
+posteriors = pd.read_pickle(args.posterior_file)
 
 
 # ## Load injections
@@ -41,7 +48,7 @@ posteriors = pd.read_pickle(os.path.join(project_dir, 'gwpopulation', 'BBH', 're
 
 import dill
 
-with open(os.path.join(project_dir, 'gwpopulation', 'BBH', 'detected_injections_mf_SNR.pkl'), "rb") as ff:
+with open(args.detected_injections_file, "rb") as ff:
     injections = dill.load(ff)
 
 
@@ -51,8 +58,7 @@ with open(os.path.join(project_dir, 'gwpopulation', 'BBH', 'detected_injections_
 
 
 model = NonCachingModel(
-    model_functions=[gwpop.models.redshift.MadauDickinsonRedshift(cosmo_model="Planck18", z_max=8)],
-    #model_functions=[gwpop.models.redshift.PowerLawRedshift(z_max=8)],
+    model_functions=[gwpop.models.redshift.MadauDickinsonRedshift(cosmo_model="Planck18", z_max=args.z_max)],
 )
 
 vt = gwpop.vt.ResamplingVT(model=model, data=injections, n_events=len(posteriors))
@@ -73,7 +79,6 @@ priors = PriorDict()
 priors['gamma'] = Uniform(minimum=0, maximum=5, latex_label="$\\gamma$")
 priors['kappa'] = Uniform(minimum=0, maximum=20, latex_label="$\\kappa$")
 priors['z_peak'] = Uniform(minimum=0.5, maximum=4, latex_label="$z_{peak}$")
-#priors['lamb'] = Uniform(minimum=0.5, maximum=4, latex_label="$\\lambda$")
 
 
 # ## Just-in-time compile
@@ -112,24 +117,10 @@ result = bb.run_sampler(
     priors=priors,
     sampler="dynesty",
     nlive=1000,
-    label="Asharp-study-gwpop",
+    label=args.label,
     sample="acceptance-walk",
     naccept=20,
     save="hdf5",
     plot=True,
-    outdir='/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/run01_mf_SNR_injections'
+    outdir=args.out_dir
 )
-
-
-# In[ ]:
-
-# ## Post-processing checks
-
-#func = jax.jit(likelihood.generate_extra_statistics)
-#
-#full_posterior = pd.DataFrame(
-#    [func(parameters) for parameters in result.posterior.to_dict(orient="records")]
-#).astype(float)
-#full_posterior.describe()
-#
-#full_posterior[result.search_parameter_keys + ["log_likelihood", "variance"]].corr()
