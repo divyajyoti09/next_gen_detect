@@ -23,6 +23,7 @@ import random
 from pycbc.types import FrequencySeries
 from pycbc.filter.matchedfilter import matched_filter
 from pycbc.noise import frequency_noise_from_psd
+from scipy.stats import ncx2
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -306,7 +307,7 @@ class calc_snr:
     def calc_opt_snr(self, htilde, ifo, f_low):
         """
         Calculates optimal SNR
-    
+
         Parameters:
         ------------
         htilde: PyCBC TimeSeries or Frequency Series
@@ -327,6 +328,23 @@ class calc_snr:
             opt_snr = sigma(htilde, self.psd_data_dict[ifo], low_frequency_cutoff=f_low)
         return (opt_snr)
 
+    def calc_mf_from_opt_snr(self, opt_snr_sq):
+        """
+        Calcultes matched filter SNR from optimal SNR using chi_sq distribution
+
+        Parameters:
+        -------------
+        opt_snr_sq: float
+            square of the optimal snr
+
+        Returns:
+        -------------
+        matched filter snr (float)
+        """
+        mf_snr_sq = ncx2.rvs(2, opt_snr_sq)
+        mf_snr = np.sqrt(mf_snr_sq)
+        return(mf_snr)
+
     def calc_mf_snr(self, template, ifo, f_low, opt_snr_sq):
         """
         Calculates matched filter SNR
@@ -339,6 +357,8 @@ class calc_snr:
             short name of the detector
         f_low: float
             starting frequency calculate SNR
+        opt_snr_sq: float
+            square of the optimal snr
 
         Returns:
         ---------
@@ -535,6 +555,7 @@ PSD_model_names_df = pd.DataFrame(PSD_model_names_dict)
 results_dict = deepcopy(location_dict)
 hf_dict = {}
 snr_dict_opt = {}
+snr_dict_mf_from_opt = {}
 snr_dict_mf = {}
 
 # If sample size is large, divide into chunks
@@ -561,6 +582,7 @@ if args.num_procs == None:
         results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
         netw_SNR_sq_opt = np.zeros(len(results_chunk))
+        netw_SNR_sq_mf_from_opt = np.zeros(len(results_chunk))
         netw_SNR_sq_mf = np.zeros(len(results_chunk))
     
         for IFO in network:
@@ -578,17 +600,21 @@ if args.num_procs == None:
                                      hf_dict[IFO],
                                      location_chunk['ifo'],
                                      wf_gen_chunk['f_lower']))
+            snr_dict_mf_from_opt[IFO] = list(map(calc_snr_call.calc_mf_from_opt_snr, np.array(snr_dict_opt[IFO])**2))
             snr_dict_mf[IFO] = list(map(calc_snr_call.calc_mf_snr,
                                      hf_dict[IFO],
                                      location_chunk['ifo'],
                                      wf_gen_chunk['f_lower'],
                                      np.array(snr_dict_opt[IFO])**2))
             results_chunk['SNR_%s'%IFO] = snr_dict_opt[IFO]
+            results_chunk['SNR_mf_from_opt_%s'%IFO] = snr_dict_mf_from_opt[IFO]
             results_chunk['SNR_mf_%s'%IFO] = snr_dict_mf[IFO]
             netw_SNR_sq_opt += np.array(snr_dict_opt[IFO])**2
+            netw_SNR_sq_mf_from_opt += np.array(snr_dict_mf_from_opt[IFO])**2
             netw_SNR_sq_mf += np.array(snr_dict_mf[IFO])**2
     
         results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq_opt))
+        results_chunk['SNR_mf_from_opt_network'] = list(np.sqrt(netw_SNR_sq_mf_from_opt))
         results_chunk['SNR_mf_network'] = list(np.sqrt(netw_SNR_sq_mf))
         results_df_chunked.append(results_chunk)
 
@@ -611,6 +637,7 @@ if args.num_procs:
                 results_chunk = pd.concat([results_chunk, location_chunk], axis=1)
 
                 netw_SNR_sq_opt = np.zeros(len(results_chunk))
+                netw_SNR_sq_mf_from_opt = np.zeros(len(results_chunk))
                 netw_SNR_sq_mf = np.zeros(len(results_chunk))
                 
                 for IFO in network:
@@ -631,17 +658,21 @@ if args.num_procs:
                                                    zip(hf_dict[IFO],
                                                        location_chunk['ifo'],
                                                        wf_gen_chunk['f_lower'])))
+                    snr_dict_mf_from_opt[IFO] = list(p.starmap(calc_snr_call.calc_mf_from_opt_snr, [(x,) for x in (np.array(snr_dict_opt[IFO])**2)]))
                     snr_dict_mf[IFO] = list(p.starmap(calc_snr_call.calc_mf_snr,
                                                    zip(hf_dict[IFO],
                                                        location_chunk['ifo'],
                                                        wf_gen_chunk['f_lower'],
                                                        np.array(snr_dict_opt[IFO])**2)))
                     results_chunk['SNR_%s'%IFO] = snr_dict_opt[IFO]
+                    results_chunk['SNR_mf_from_opt_%s'%IFO] = snr_dict_mf_from_opt[IFO]
                     results_chunk['SNR_mf_%s'%IFO] = snr_dict_mf[IFO]
                     netw_SNR_sq_opt += np.array(snr_dict_opt[IFO])**2
+                    netw_SNR_sq_mf_from_opt += np.array(snr_dict_mf_from_opt[IFO])**2
                     netw_SNR_sq_mf += np.array(snr_dict_mf[IFO])**2
 
                 results_chunk['SNR_network'] = list(np.sqrt(netw_SNR_sq_opt))
+                results_chunk['SNR_mf_from_opt_network'] = list(np.sqrt(netw_SNR_sq_mf_from_opt))
                 results_chunk['SNR_mf_network'] = list(np.sqrt(netw_SNR_sq_mf))
                 results_df_chunked.append(results_chunk)
 
