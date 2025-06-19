@@ -19,7 +19,7 @@ gwpop.set_backend("jax")
 
 xp = gwpop.utils.xp
 
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, allow_abbrev=False)
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=False)
 parser.add_argument("--posterior-file", required=True, 
                     help="Path to the pkl file containing the posterior samples for all events")
 parser.add_argument("--out-dir",
@@ -32,6 +32,7 @@ parser.add_argument("--label", default="Asharp-study",
                     help="label for the gwpopulation analysis result files")
 
 args = parser.parse_args()
+os.system(f'mkdir -p {args.out_dir}')
 
 # ## Load posteriors
 
@@ -80,6 +81,14 @@ priors['gamma'] = Uniform(minimum=0, maximum=5, latex_label="$\\gamma$")
 priors['kappa'] = Uniform(minimum=0, maximum=20, latex_label="$\\kappa$")
 priors['z_peak'] = Uniform(minimum=0.5, maximum=4, latex_label="$z_{peak}$")
 
+with open(os.path.join(args.out_dir, 'README.txt'), 'w+') as f:
+    f.write('Input files used for analysis:\n')
+    f.write(f'\tPosterior file: {args.posterior_file}\n')
+    f.write(f'\tInjections file: {args.detected_injections_file}\n')
+    f.write('Priors: {\n')
+    for key, val in priors.items():
+        f.write("\t%s: %s\n"%(key, val))
+    f.write("\t}")
 
 # ## Just-in-time compile
 
