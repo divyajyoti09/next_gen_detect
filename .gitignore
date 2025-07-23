@@ -172,6 +172,7 @@ noise_curves/._CE20-asd.txt
 *.tar.gz
 run_job_9_52_78.sh
 *outdir/
+*png
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
