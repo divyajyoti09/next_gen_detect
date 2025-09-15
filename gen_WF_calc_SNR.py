@@ -476,6 +476,15 @@ if args.input_param_names_format == 'PyCBC':
     params_dict_PyCBC0 = deepcopy(params_dict)
 else:
     params_dict_PyCBC0 = convert_pesummary_to_pycbc(params_dict)
+print("Checking if any input sample is single value instead of array")
+for key, val in params_dict_PyCBC0.items():
+    if isinstance(val, np.ndarray):
+        if len(val) <= 1:
+            print(f"{key} is an array of length 1, increasing the length to match the sample length")
+            params_dict_PyCBC0[key] = np.ones(len(params_dict_PyCBC0['mass1']))*val[0]
+    else:
+        print(f"{key} is not an array. Creating an array of sample length with this value")
+        params_dict_PyCBC0[key] = np.ones(len(params_dict_PyCBC0['mass1']))*val
 
 if args.num_samples:
     num_samples = args.num_samples
