@@ -1,0 +1,52 @@
+# ======================
+# HTCondor Submit File
+# ======================
+
+universe       = vanilla
+executable     = run_job2.sh
+arguments      = $(Process)
+
+# --- Define variables/macros ---
+POP_NAME = 5_pop_PLP_spin_prec_fref_5_z_MDlow_zp_1.54_zmax_10_lmrd_22_corrected_td
+
+# --- Logging and output ---
+log    = outdir2/logs/job_$(Process).log
+output = outdir2/logs/job_$(Process).out
+error  = outdir2/logs/job_$(Process).err
+
+# --- File transfers ---
+transfer_input_files = \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/gen_WF_calc_SNR.py, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/conversions.py, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/detectors.py, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/detector_config.ini, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/detector_psds.py, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/input_files/$(POP_NAME)/$(POP_NAME)_part$(Process).h5, \
+    /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/scripts/next_gen_detect/noise_curves.tar.gz, \
+    run_job2.sh
+
+transfer_output_files = SNR_output_files_XPHM2
+should_transfer_files = YES
+
+# --- Resource requests ---
+request_cpus   = 8
+request_memory = 20GB
+request_disk   = 4GB
+
+# --- Stream I/O to live logs ---
+stream_output = True
+stream_error  = True
+
+# --- Notifications & accounting ---
+notify_user           = divyajyoti.nln@ligo.org
+accounting_group      = ligo.dev.o5.cbc.pe.bilby
+accounting_group_user = divyajyoti.nln
++ProjectName          = "A-sharp-study"
+
+# --- Environment requirements ---
+requirements = HAS_CVMFS_software_igwn_org == True
+
+# --- Queue jobs ---
+queue 400
+
+# queue Process in 9, 52, 78
