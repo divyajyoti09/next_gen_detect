@@ -94,9 +94,14 @@ else:
     full_posterior_list = [func(parameters) for parameters in tqdm(result.posterior.to_dict(orient="records"), desc='constructing full posterior')]
 print("Done")
 
-
 sample_keys = full_posterior_list[0].keys()
-keys_main = [k for k in sample_keys if 'ln_bf' not in k and 'var_' not in k]
+keys_var = []
+for k in sample_keys:
+    if 'var_' in k:
+        keys_var.append(k)
+    elif 'ln_bf' not in k:
+        keys_main = [k for k in sample_keys if 'ln_bf' not in k and 'var_' not in k]
+
 data_main = np.empty((len(full_posterior_list), len(keys_main)), dtype=np.float32)
 
 for i, d in tqdm(enumerate(full_posterior_list), total=len(full_posterior_list), desc='Building arrays'):
@@ -117,3 +122,30 @@ pd.plotting.scatter_matrix(
 )
 plt.tight_layout()
 plt.savefig(os.path.join(args.out_dir, 'param_variance_matrix.png'), dpi=300)
+
+"""
+print("Number of events with var > 1 :", len(keys_high_var))
+print("Number of events with var < 1 :", len(keys_var))
+data_high_var = np.empty((len(full_posterior_list), len(keys_high_var)), dtype=np.float32)
+data_low_var = np.empty((len(full_posterior_list), len(keys_var)), dtype=np.float32)
+
+for i, d in tqdm(enumerate(full_posterior_list), total=len(full_posterior_list), desc='Building arrays for events with var>1'):
+    if i < 5:
+        data_high_var[i] = [d[k] for k in keys_high_var]
+        data_low_var[i] = [d[k] for k in keys_var]
+
+# Convert to dict of arrays
+dict_high_var = {k: data_high_var[:, i] for i, k in tqdm(enumerate(keys_high_var), total=len(keys_high_var), desc='Converting to dict of arrays')}
+dict_low_var = {k: data_low_var[:, i] for i, k in tqdm(enumerate(keys_var), total=len(keys_var), desc='Converting to dict of arrays')}
+"""
+dict_var = {'key':[], 'sample_0':[]}
+
+for key in tqdm(keys_var, desc='building data for events with var > 1'):
+    dict_var['key'].append(key)
+    dict_var['sample_0'].append(full_posterior_list[0][key])
+
+print("Converting to pandas dataframe")
+df_var = pd.DataFrame(dict_var)
+print("Writing pandas DataFrame to .csv for events with var>1")
+df_var.to_csv(os.path.join(args.out_dir, 'event_var_sample0.csv'))
+
