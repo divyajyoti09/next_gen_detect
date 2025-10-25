@@ -26,7 +26,7 @@ parser.add_argument("--out-dir",
                     help="Path to the directory where output files will be saved. If None, files will be saved in the current directory.")
 parser.add_argument("--detected-injections-file", required=True,
                     help="path to the pkl file containing the injections which are detected")
-parser.add_argument("--z-max", type=float, default=10,
+parser.add_argument("--z-max", type=float, default=11,
                     help="z_max value to call the redshift model with")
 parser.add_argument("--label", default="Asharp-study",
                     help="label for the gwpopulation analysis result files")
