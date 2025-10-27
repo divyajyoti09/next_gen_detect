@@ -88,7 +88,8 @@ with open(os.path.join(args.out_dir, 'README.txt'), 'w+') as f:
     f.write('Priors: {\n')
     for key, val in priors.items():
         f.write("\t%s: %s\n"%(key, val))
-    f.write("\t}")
+    f.write("\t}\n")
+    f.write(f'z-max used for model: {args.z_max}\n')
 
 # ## Just-in-time compile
 
