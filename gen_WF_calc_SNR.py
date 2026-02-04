@@ -158,7 +158,8 @@ parser.add_argument("--write-out-file-with", choices={'pandas', 'h5py'}, default
                     help="The structure of the h5 file will depend on whether it is written with pandas.Dataframe.to_hdf() or using h5py.")
 parser.add_argument("--max-worker-chunksize", type=int, default=40,
                     help="Maximum worker chunksize to be alloted when using Pool. Use this with --num-procs option if needed")
-parser.add_argument("--calc-mf-snr", action='store_true')
+parser.add_argument("--calc-mf-snr", action='store_true', 
+                    help="If specified, calculates the matched filter SNR by introducing noise in the data and then matched filtering. Matched filter SNR from a non-central chi-sq. distribution on optimal will always be calculated nonetheless.")
 
 args = parser.parse_args()
 
