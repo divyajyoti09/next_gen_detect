@@ -5,23 +5,23 @@
 trap "kill 0" EXIT
 
 #commenting out the text below
-: <<'COMMENT'
 echo "Running BBH for LI, H1, I1 all at A# sensitivty"
 printf "\n"
 python gen_WF_calc_SNR.py \
-	--param-file /nfshome/store04/users/divyajyoti.nln/Next_gen_detectability/A-sharp-study/input_population/BBH/1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_365_days_corrected_td.h5 \
+	--param-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/input_population/BBH/4_pop_set2_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_365_days_corrected_td.h5 \
         --approximant IMRPhenomXPHM \
         --detectors-and-psds \
 		L1:ASharp \
                 H1:ASharp \
                 I1:ASharp \
 	--f-low 10 \
-	--out-dir /nfshome/store04/users/divyajyoti.nln/Next_gen_detectability/A-sharp-study/SNR_output_files_XPHM/BBH \
-        --set-name LHI_SNR_1_pop_PLP_spin_prec_z_MD_zmax_6_lmrd_22_365_days_corrected_td \
+	--out-dir /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/SNR_output_files_XPHM/BBH \
+        --set-name LHI_SNR_4_pop_set2_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_365_days_corrected_td \
 	--num-procs 16
 echo "Run complete!"
 printf "\n\n"
 
+<<'COMMENT'
 echo "Running NSBH part 1 for LI, H1, I1 all at A# sensitivty"
 printf "\n"
 python gen_WF_calc_SNR.py \
@@ -133,7 +133,6 @@ python gen_WF_calc_SNR.py \
 	--num-procs 8
 echo "Run complete!"
 printf "\n\n"
-COMMENT
 
 echo "Running BBH for CE40, CE20, ET123"
 printf "\n"
@@ -152,3 +151,4 @@ python gen_WF_calc_SNR.py \
 	--num-procs 16
 echo "Run complete!"
 printf "\n\n"
+COMMENT

@@ -15,6 +15,10 @@ import os
 import time
 import argparse
 
+import psutil
+
+psutil.Process().cpu_affinity(list(range(16)))
+
 gwpop.set_backend("jax")
 
 xp = gwpop.utils.xp

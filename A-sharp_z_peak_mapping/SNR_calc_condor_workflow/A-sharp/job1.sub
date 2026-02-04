@@ -7,7 +7,7 @@ executable     = run_job1.sh
 arguments      = $(Process)
 
 # --- Define variables/macros ---
-POP_NAME = 4_pop_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_corrected_td
+POP_NAME = 2_pop_PLP_spin_prec_fref_10_z_uniform_zmax_10_no_td
 
 # --- Logging and output ---
 log    = outdir1/logs/job_$(Process).log

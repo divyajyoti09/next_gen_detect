@@ -20,6 +20,10 @@ import bilby
 import numpy as np
 import h5py
 
+import psutil
+
+psutil.Process().cpu_affinity(list(range(4)))
+
 print("Done")
 
 parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=False)
@@ -140,12 +144,12 @@ dict_low_var = {k: data_low_var[:, i] for i, k in tqdm(enumerate(keys_var), tota
 """
 dict_var = {'key':[], 'sample_0':[]}
 
-for key in tqdm(keys_var, desc='building data for events with var > 1'):
+for key in tqdm(keys_var, desc='getting event variances for sample 0'):
     dict_var['key'].append(key)
     dict_var['sample_0'].append(full_posterior_list[0][key])
 
 print("Converting to pandas dataframe")
 df_var = pd.DataFrame(dict_var)
-print("Writing pandas DataFrame to .csv for events with var>1")
+print("Writing pandas DataFrame to .csv")
 df_var.to_csv(os.path.join(args.out_dir, 'event_var_sample0.csv'))
 
