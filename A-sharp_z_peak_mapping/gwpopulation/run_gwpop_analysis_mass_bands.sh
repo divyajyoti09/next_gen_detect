@@ -12,10 +12,11 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR1}"
 echo " "
+COMMENT
 
-OUT_DIR2="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/below_40/run09_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR2="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/below_40/run11_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_2119_events_pop_from_XPHM_fm2_netw_below_40.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_set2_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_2125_events_pop_from_XPHM_fm2_netw_below_40.pkl \
 	--out-dir "${OUT_DIR2}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/LHI_Asharp_SNR_4_pop_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_20437744_points_below_40.pkl \
 	--label Asharp
@@ -24,7 +25,8 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR2}"
 echo " "
-COMMENT
+
+<<COMMENT
 
 OUT_DIR3="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/below_40/run10_gwfish_MDlow_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -38,7 +40,6 @@ python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR3}"
 echo " "
 
-<<COMMENT
 
 echo "Running for M: 40-80"
 OUT_DIR4="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/40-80/run05_gwfish_mf_from_gaussian_SNR_injections_XPHM"
@@ -53,11 +54,10 @@ python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR4}"
 echo " "
 
-
 echo "Running for M: 40-80"
-OUT_DIR5="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/40-80/run08_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR5="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/40-80/run10_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_2258_events_pop_from_XPHM_fm2_netw_40-80.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_set2_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_2243_events_pop_from_XPHM_fm2_netw_40-80.pkl \
 	--out-dir "${OUT_DIR5}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/LHI_Asharp_SNR_4_pop_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_3324272_points_40-80.pkl \
 	--label Asharp
@@ -66,7 +66,7 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR5}"
 echo " "
-COMMENT
+
 
 OUT_DIR6="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/40-80/run09_gwfish_MDlow_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -80,7 +80,6 @@ python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR6}"
 echo " "
 
-<<COMMENT
 echo "Running for M > 80"
 OUT_DIR7="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/above_80/run07_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -95,9 +94,9 @@ python post_proc_checks_gwpop.py \
 echo " "
 
 echo "Running for M > 80"
-OUT_DIR8="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/above_80/run10_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR8="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/above_80/run12_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_313_events_pop_from_XPHM_fm2_netw_above_80.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/LHI_Asharp_4_PLP_set2_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_336_events_pop_from_XPHM_fm2_netw_above_80.pkl \
 	--out-dir "${OUT_DIR8}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/LHI_Asharp_SNR_4_pop_PLP_spin_prec_fref_10_z_MDhigh_zp_2.53_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_237970_points_above_80.pkl \
 	--label Asharp
@@ -106,7 +105,7 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR8}"
 echo " "
-COMMENT
+
 
 OUT_DIR9="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/above_80/run11_gwfish_MDlow_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -120,7 +119,6 @@ python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR9}"
 echo " "
 
-<<COMMENT
 OUT_DIR1="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/below_40/run08_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 echo "Running for M < 40"
 python gwpop_analysis.py \
