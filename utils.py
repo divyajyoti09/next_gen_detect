@@ -197,3 +197,108 @@ def transform_cov_DL_Mc_to_logDL_logMc(cov, DL, DL_index, Mc, Mc_index):
     cov_new = J @ cov @ J.T
 
     return cov_new
+
+def transform_cov_chi1_chi2_to_chieff_chianti(cov, q, chi1_index, chi2_index):
+    """
+    Transforms a covariance matrix where:
+    - chi_1 and chi_2 are replaced with chi_eff and chi_anti
+    - chi_eff  = (chi_1 + q * chi_2) / (1 + q)
+    - chi_anti = (chi_1 - q * chi_2) / (1 + q)
+    - Other parameters remain unchanged
+
+    Parameters:
+    -----------
+    cov : np.ndarray
+        Original NxN covariance matrix including chi_1 and chi_2.
+    q : float
+        Mass ratio.
+    chi1_index : int
+        Index of chi_1 in the covariance matrix.
+    chi2_index : int
+        Index of chi_2 in the covariance matrix.
+
+    Returns:
+    --------
+    cov_new : np.ndarray
+        Transformed covariance matrix with chi_eff and chi_anti
+        replacing chi_1 and chi_2.
+    """
+
+    # Derivatives for Jacobian
+    dchieff_dchi1  = 1.0 / (1.0 + q)
+    dchieff_dchi2  = q   / (1.0 + q)
+    dchianti_dchi1 = 1.0 / (1.0 + q)
+    dchianti_dchi2 = -q  / (1.0 + q)
+
+    # Build Jacobian matrix
+    N = cov.shape[0]
+    J = np.eye(N)
+
+    # chi_eff row
+    J[chi1_index, chi1_index] = dchieff_dchi1
+    J[chi1_index, chi2_index] = dchieff_dchi2
+
+    # chi_anti row
+    J[chi2_index, chi1_index] = dchianti_dchi1
+    J[chi2_index, chi2_index] = dchianti_dchi2
+
+    # Transform covariance matrix
+    cov_new = J @ cov @ J.T
+
+    return cov_new
+
+def slice_mtotal_pop(arr, mtotal_range):
+    """
+    Returns: A bool array corresponding to arr, depending on the range provided
+    """
+    if '<' in mtotal_range:
+        max_boundary = float(mtotal_range.split('<')[-1])
+        return(arr < max_boundary)
+        
+    elif '<=' in mtotal_range:
+        max_boundary = float(mtotal_range.split('<=')[-1])
+        return(arr <= max_boundary)
+        
+    elif '>' in mtotal_range:
+        min_boundary = float(mtotal_range.split('>')[-1])
+        return(arr > min_boundary)
+        
+    elif '>=' in mtotal_range:
+        min_boundary = float(mtotal_range.split('>=')[-1])
+        return(arr >= min_boundary)
+        
+    elif '-' in mtotal_range:
+        min_boundary, max_boundary = map(float, mtotal_range.split('-'))
+        return(np.all((arr >= min_boundary, arr <= max_boundary), axis=0))
+    
+def z_peak_new(gamma, kappa, z_peak):
+    new_peak = (gamma/(kappa-gamma))**(1/kappa) * (1+z_peak) - 1
+    return(new_peak)
+
+def z_peak_new_from_dict(parameters):
+    """
+    parameters: dict
+    
+    Returns
+    ------------------
+    converted_parameters: dict
+    """
+    converted_parameters = parameters.copy()
+    gamma = parameters['gamma']
+    kappa = parameters['kappa']
+    z_peak = parameters['z_peak']
+    if isinstance(gamma, float):
+        if gamma >= kappa:
+            converted_parameters['z_peak_new'] = -1
+    elif isinstance(gamma, np.ndarray) or isinstance(gamma, list):
+        converted_parameters['z_peak_new'] = []
+        for i in range(len(gamma)):
+            gamma_i = gamma[i]
+            kappa_i = kappa[i]
+            z_peak_i = z_peak[i]
+            if gamma_i >= kappa_i:
+                converted_parameters['z_peak_new'].append(-1)
+            else:
+                converted_parameters['z_peak_new'].append((gamma_i/(kappa_i-gamma_i))**(1/kappa_i) * (1+z_peak_i) - 1)
+        converted_parameters = {key:np.array(converted_parameters[key]) for key in converted_parameters.keys()}
+    return converted_parameters
