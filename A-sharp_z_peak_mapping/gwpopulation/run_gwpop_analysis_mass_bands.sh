@@ -12,7 +12,6 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR1}"
 echo " "
-COMMENT
 
 OUT_DIR2="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/below_40/run11_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -26,7 +25,6 @@ python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR2}"
 echo " "
 
-<<COMMENT
 
 OUT_DIR3="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/Asharp/mass_bands/below_40/run10_gwfish_MDlow_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
@@ -192,9 +190,10 @@ python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR6}"
 echo " "
 echo " "
+COMMENT
 
 echo "Running for M > 80"
-OUT_DIR7="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run06_gwfish_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR7="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run09_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
 	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_56_events_pop_from_XPHM_fm2_netw_above_80.pkl \
 	--out-dir "${OUT_DIR7}" \
@@ -205,6 +204,7 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR7}"
 
+<<COMMENT
 OUT_DIR8="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run07_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
 	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_46_events_pop_from_XPHM_fm2_netw_above_80.pkl \
