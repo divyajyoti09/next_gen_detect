@@ -9,7 +9,7 @@ import gwpopulation as gwpop
 import jax
 import matplotlib.pyplot as plt
 import pandas as pd
-from bilby.core.prior import PriorDict, Uniform
+from bilby.core.prior import PriorDict, Uniform, Constraint
 from gwpopulation.experimental.jax import JittedLikelihood, NonCachingModel
 import os
 import time
@@ -79,11 +79,19 @@ likelihood = gwpop.hyperpe.HyperparameterLikelihood(
 
 # In[6]:
 
+def convert_z_peak_new(parameters):
+    converted_parameters = parameters.copy()
+    gamma = converted_parameters['gamma']
+    kappa = converted_parameters['kappa']
+    z_peak = converted_parameters['z_peak']
+    converted_parameters['z_peak_new'] = (gamma/(kappa-gamma))**(1/kappa) * (1+z_peak) - 1
+    return(converted_parameters)
 
-priors = PriorDict()
+priors = PriorDict(conversion_function=convert_z_peak_new)
 priors['gamma'] = Uniform(minimum=0, maximum=5, latex_label="$\\gamma$")
 priors['kappa'] = Uniform(minimum=0, maximum=20, latex_label="$\\kappa$")
 priors['z_peak'] = Uniform(minimum=0.5, maximum=4, latex_label="$z_{peak}$")
+priors['z_peak_new'] = Constraint(minimum=0., maximum=5, latex_label="$\\tilde{z}_{peak}$")
 
 with open(os.path.join(args.out_dir, 'README.txt'), 'w+') as f:
     f.write('Input files used for analysis:\n')
