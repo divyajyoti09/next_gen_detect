@@ -16,7 +16,13 @@ psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', # https://d
                    'ET15_CoBA':{'file':'./noise_curves/18213_ET15kmcolumns.txt', 
                                 'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213
                    'ET20_CoBA':{'file':'./noise_curves/18213_ET20kmcolumns.txt', 
-                                'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213
+                                'is_asd':False}, # https://apps.et-gw.eu/tds/?r=18213,
+                   'ASharp_postO5':{'file':'./noise_curves/Asharp_postO5_repo.txt', 
+                                    'is_asd':True},
+                   'O5c_postO5':{'file':'./noise_curves/O5c_postO5_repo.txt',
+                                  'is_asd':True},
+                   'Virgo_postO5':{'file':'./noise_curves/Virgo_O5_Stage-1_HighSens_PSD.txt',
+                                   'is_asd':False}
                   }
 
 def get_available_psds():
@@ -58,7 +64,7 @@ def generate_psd(psd_name, length, delta_f, f_low):
             psd_data = psd.from_txt(psds_from_files[psd_name]['file'],
                                     length, delta_f, f_low,
                                     is_asd_file=psds_from_files[psd_name]['is_asd'])
-    elif 'O5' in psd_name:
+    elif psd_name in ['O5a', 'O5b', 'O5c']:
         o5_freq, o5a, o5b, o5c = np.loadtxt(psds_from_files['O5']['file'], unpack=True, skiprows=1)
         if psd_name == 'O5a':
             if psds_from_files['O5']['is_asd']:
