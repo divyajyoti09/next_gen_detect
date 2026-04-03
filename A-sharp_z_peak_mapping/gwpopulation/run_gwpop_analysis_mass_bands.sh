@@ -116,11 +116,12 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
 	--out-dir "${OUT_DIR9}"
 echo " "
+COMMENT
 
-OUT_DIR1="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/below_40/run08_gwfish_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR1="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/below_40/run11_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 echo "Running for M < 40"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_4895_events_pop_from_XPHM_fm2_netw_below_40.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_3718_events_pop_from_XPHM_fm2_netw2_below_40.pkl \
 	--out-dir "${OUT_DIR1}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/CE4020ET123_CoBA10_SNR_2_pop_PLP_spin_prec_z_MD_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_3406035_points_below_40.pkl \
 	--label CE4020ET123
@@ -130,6 +131,7 @@ python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR1}" --num-samples 2000
 echo " "
 
+<<COMMENT
 OUT_DIR2="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/below_40/run09_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 echo "Running for M < 40"
 python gwpop_analysis.py \
@@ -154,11 +156,12 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR3}" --num-samples 2000
 echo " "
+COMMENT
 
 echo "Running for M in [40, 80]"
-OUT_DIR4="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/40-80/run06_gwfish_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR4="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/40-80/run09_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_909_events_pop_from_XPHM_fm2_netw_40-80.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_647_events_pop_from_XPHM_fm2_netw2_40-80.pkl \
 	--out-dir "${OUT_DIR4}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/CE4020ET123_CoBA10_SNR_2_pop_PLP_spin_prec_z_MD_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_554229_points_40-80.pkl \
 	--label CE4020ET123
@@ -167,6 +170,7 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR4}"
 
+<<COMMENT
 OUT_DIR5="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/40-80/run07_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
 	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_677_events_pop_from_XPHM_fm2_netw_40-80.pkl \
@@ -190,12 +194,11 @@ python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR6}"
 echo " "
 echo " "
-COMMENT
 
 echo "Running for M > 80"
-OUT_DIR7="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run09_gwfish_mf_from_gaussian_SNR_injections_XPHM"
+OUT_DIR7="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run10_gwfish_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
-	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_56_events_pop_from_XPHM_fm2_netw_above_80.pkl \
+	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_2_PLP_z_MD_zmax_10_lmrd_22_no_spins_posteriors_10K_35_events_pop_from_XPHM_fm2_netw2_above_80.pkl \
 	--out-dir "${OUT_DIR7}" \
 	--detected-injections-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/injections/mass_bands/XPHM/CE4020ET123_CoBA10_SNR_2_pop_PLP_spin_prec_z_MD_zmax_10_lmrd_22_corrected_td_detected_injs_mf_from_gaussian_SNR_39729_points_above_80.pkl \
 	--label CE4020ET123
@@ -204,7 +207,6 @@ echo "Calcuting variance"
 python post_proc_checks_gwpop.py \
         --out-dir "${OUT_DIR7}"
 
-<<COMMENT
 OUT_DIR8="/home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/gwpop_analysis_results/CE4020ET123/mass_bands/above_80/run07_gwfish_MDhigh_mf_from_gaussian_SNR_injections_XPHM"
 python gwpop_analysis.py \
 	--posterior-file /home/divyajyoti.nln/Cardiff_University/Next_gen_detectability/A-sharp-study/gwpopulation/BBH/posteriors_from_GWFish/mass_bands/CE4020ET123_CoBA10_4_PLP_z_MDhigh_zp_2.53_zmax_10_lmrd_22_no_spins_posteriors_10K_46_events_pop_from_XPHM_fm2_netw_above_80.pkl \
