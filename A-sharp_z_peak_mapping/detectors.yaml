@@ -33,8 +33,8 @@ LLO:
         lon:              -90.77 * np.pi / 180.
         opening_angle:    np.pi / 2.
         azimuth:          197.7 * np.pi / 180.
-        psd_data:         LIGO_O5_psd.txt
-        duty_factor:      0.85
+        psd_data:         Asharp_postO5_repo_psd.txt
+        duty_factor:      1
         detector_class:   earthL
         plotrange:        10, 1000, 1e-25, 1e-20
         fmin:             8
@@ -48,8 +48,8 @@ LHO:
         lon:              -119.4 * np.pi / 180.
         opening_angle:    np.pi / 2.
         azimuth:          126. * np.pi / 180.
-        psd_data:         LIGO_O5_psd.txt
-        duty_factor:      0.85
+        psd_data:         Asharp_postO5_repo_psd.txt
+        duty_factor:      1
         detector_class:   earthL
         plotrange:        10, 1000, 1e-25, 1e-20
         fmin:             8
@@ -63,8 +63,8 @@ VIR:
         lon:              10.5 * np.pi / 180.
         opening_angle:    np.pi / 2.
         azimuth:          71. * np.pi / 180.
-        psd_data:         Virgo_O5_psd.txt
-        duty_factor:      0.85
+        psd_data:         Virgo_O5_Stage-1_HighSens_PSD.txt
+        duty_factor:      1
         detector_class:   earthL
         plotrange:        10, 1000, 1e-25, 1e-20
         fmin:             8
