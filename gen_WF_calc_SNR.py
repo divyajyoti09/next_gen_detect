@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter,ArgumentError
-import deepdish as dd
+#import deepdish as dd
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
@@ -24,6 +24,7 @@ from pycbc.types import FrequencySeries
 from pycbc.filter.matchedfilter import matched_filter
 from pycbc.noise import frequency_noise_from_psd
 from scipy.stats import ncx2
+from utils import load_results_from_h5
 
 # Force unbuffered output
 sys.stdout.reconfigure(line_buffering=True)
@@ -464,7 +465,7 @@ def hdf_append(f, key, value, group=None):
 
 # Load data from the parameter file
 
-load_params_file = dd.io.load(args.param_file)
+load_params_file = load_results_from_h5(args.param_file)
 params_dict = deepcopy(load_params_file)
 
 config_dict = params_dict.pop("config", None)
