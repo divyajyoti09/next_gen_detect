@@ -73,6 +73,36 @@ VIR:
         df:               1./4.    
         npoints:          5000 
         arm_length:       3000
+LLO_O5c:
+        lat:              30.56 * np.pi / 180.
+        lon:              -90.77 * np.pi / 180.
+        opening_angle:    np.pi / 2.
+        azimuth:          197.7 * np.pi / 180.
+        psd_data:         O5c_postO5_repo_psd.txt
+        duty_factor:      1
+        detector_class:   earthL
+        plotrange:        10, 1000, 1e-25, 1e-20
+        fmin:             8
+        fmax:             1024
+        spacing:          geometric 
+        df:               1./100.    
+        npoints:          5000    
+        arm_length:       4000
+LHO_O5c:
+        lat:              46.46 * np.pi / 180.
+        lon:              -119.4 * np.pi / 180.
+        opening_angle:    np.pi / 2.
+        azimuth:          126. * np.pi / 180.
+        psd_data:         O5c_postO5_repo_psd.txt
+        duty_factor:      1
+        detector_class:   earthL
+        plotrange:        10, 1000, 1e-25, 1e-20
+        fmin:             8
+        fmax:             1024
+        spacing:          geometric 
+        df:               1./4.    
+        npoints:          5000 
+        arm_length:       4000
 VIR_O2:
         lat:              43.6 * np.pi / 180.
         lon:              10.5 * np.pi / 180.
