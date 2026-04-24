@@ -5,7 +5,11 @@ pycbc_psds = psd.analytical.get_psd_model_list()
 
 psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', # https://dcc.ligo.org/LIGO-T2300041
                              'is_asd':True},
-                   'O5':{'file':'./noise_curves/O5StrainCurves_freqabc-asd.txt', # https://dcc.ligo.org/LIGO-T2500310
+                   'O5a':{'file':'./noise_curves/O5a-asd.txt', # https://dcc.ligo.org/LIGO-T2500310
+                          'is_asd':True},
+                   'O5b':{'file':'./noise_curves/O5b-asd.txt', # https://dcc.ligo.org/LIGO-T2500310
+                          'is_asd':True},
+                   'O5c':{'file':'./noise_curves/O5c-asd.txt', # https://dcc.ligo.org/LIGO-T2500310
                           'is_asd':True},
                    'CE20':{'file':'./noise_curves/CE20-asd.txt', # https://dcc.cosmicexplorer.org/CE-T2000017-v8/public - cosmic_explorer_20km_strain.txt
                            'is_asd':True}, 
@@ -58,23 +62,6 @@ def generate_psd(psd_name, length, delta_f, f_low):
             psd_data = psd.from_txt(psds_from_files[psd_name]['file'],
                                     length, delta_f, f_low,
                                     is_asd_file=psds_from_files[psd_name]['is_asd'])
-    elif 'O5' in psd_name:
-        o5_freq, o5a, o5b, o5c = np.loadtxt(psds_from_files['O5']['file'], unpack=True, skiprows=1)
-        if psd_name == 'O5a':
-            if psds_from_files['O5']['is_asd']:
-                o5a = o5a**2
-            psd_data = psd.from_numpy_arrays(o5_freq, o5a,
-                                                length, delta_f, f_low)
-        elif psd_name == 'O5b':
-            if psds_from_files['O5']['is_asd']:
-                o5b = o5b**2
-            psd_data = psd.from_numpy_arrays(o5_freq, o5b,
-                                                length, delta_f, f_low)
-        elif psd_name == 'O5c':
-            if psds_from_files['O5']['is_asd']:
-                o5c = o5c**2
-            psd_data = psd.from_numpy_arrays(o5_freq, o5c,
-                                                length, delta_f, f_low)
 
     else:
         raise ValueError(f"PSD model '{psd_name}' not found.")
