@@ -25,8 +25,6 @@ psds_from_files = {'ASharp':{'file':'./noise_curves/Asharp-asd.txt', # https://d
 
 def get_available_psds():
     ava_psds = pycbc_psds + list(psds_from_files.keys())
-    ava_psds.remove('O5')
-    ava_psds.extend(['O5a', 'O5b', 'O5c'])
     return(ava_psds)
 
 def generate_psd(psd_name, length, delta_f, f_low):
